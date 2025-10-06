@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Details - QuickKart</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+      body { background: none; }
+      .address-container {
+        max-width: 1100px;
+        margin: 3rem auto;
+        background: #fff;
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+      }
+      .address-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: flex-start;
+  align-items: stretch;
+      }
+      .address-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(244,99,3,0.08);
+        border: 2px solid #eee;
+  min-width: 320px;
+  max-width: 370px;
+  flex: 1 1 calc(33% - 2rem);
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+        position: relative;
+        padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+      }
+      .address-card.primary {
+        border: 2px solid #f46303;
+      }
+      .address-card .address-actions {
+        display: flex;
+        gap: 1.2rem;
+        margin-top: 1.2rem;
+        align-items: center;
+      }
+      .address-card .default-label {
+        position: absolute;
+        top: 1.2rem;
+        right: 1.2rem;
+        background: #f46303;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.3rem 1rem;
+        border-radius: 16px;
+        letter-spacing: 0.5px;
+      }
+      .add-address-card {
+        border: 2px dashed #f46303;
+        background: #fff6f2;
+  min-width: 320px;
+  max-width: 370px;
+  flex: 1 1 calc(33% - 2rem);
+  box-sizing: border-box;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1.2rem;
+        margin-bottom: 2rem;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+      }
+      .add-address-card:hover {
+        box-shadow: 0 4px 16px rgba(244,99,3,0.12);
+      }
+      .add-address-card .plus {
+        font-size: 3.2rem;
+        color: #f46303;
+        margin-bottom: 0.7rem;
+      }
+      .address-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .address-header h1 {
+        color: #f46303;
+        font-size: 2.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .address-form label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.3rem;
+        display: block;
+      }
+      .address-form input, .address-form textarea {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-bottom: 1.2rem;
+        font-size: 1rem;
+        background: #fff6f2;
+      }
+      .address-form textarea {
+        min-height: 60px;
+        resize: none;
+      }
+      .address-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+      }
+      .save-btn {
+  background: #f46303;
+  color: white;
+  border: none;
+  padding: 0.7rem 2.2rem;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(244, 99, 3, 0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  letter-spacing: 0.5px;
+      }
+      .save-btn:hover {
+  background: #f46303;
+  box-shadow: 0 6px 24px rgba(244, 99, 3, 0.18);
+  transform: translateY(-2px) scale(1.04);
+      }
+      .cancel-btn {
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        border-radius: 24px;
+        padding: 0.7rem 2.2rem;
+        font-size: 1.08rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .cancel-btn:hover {
+        background: #e0e0e0;
+      }
+      .address-success {
+        color: #28a745;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+      .address-error {
+        color: #d84315;
+        text-align: center;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+    /* Modal Styles - Optimized */
+    .modal {
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.2s;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(244,99,3,0.18);
+      padding: 2.5rem 2.2rem 2rem 2.2rem;
+      min-width: 370px; max-width: 600px;
+      position: relative;
+      animation: modalFadeIn 0.25s;
+      box-sizing: border-box;
+    }
+    @keyframes modalFadeIn {
+      from { transform: translateY(40px) scale(0.98); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #f46303;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+    }
+    .close {
+      position: absolute;
+      top: 1.2rem; right: 1.2rem;
+      font-size: 2rem; color: #f46303;
+      cursor: pointer; font-weight: bold;
+      border: none; background: none; outline: none;
+      transition: color 0.2s;
+    }
+    .close:hover { color: #d84315; }
+    .form-group {
+      margin-bottom: 1.2rem;
+      display: flex; flex-direction: column;
+    }
+    .form-group label {
+      font-weight: 600; margin-bottom: 0.5rem; color: #333;
+    }
+    .form-group input, .form-group textarea {
+      width: 96%;
+      min-width: 240px;
+      max-width: 600px;
+      padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #ccc;
+      font-size: 1rem; background: #fff6f2;
+      margin-bottom: 1.2rem;
+      margin-top: 0.2rem;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+      display: block;
+    }
+    .form-group textarea {
+      resize: none;
+    }
+    .form-actions {
+      display: flex; gap: 1.2rem; justify-content: flex-end; margin-top: 1.2rem;
+    }
+    .account-menu button {
+      font-size: 1rem;
+    }
+    </style>
+</head>
+<body>
+  <header class="navbar">
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo">
+            </a>
+        </div>
+        <div class="search-bar">
+      <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+      <input type="text" id="searchInput" placeholder="Search for products..." onkeypress="if(event.key==='Enter') performSearch()" />
+      <button class="search-btn" onclick="performSearch()">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <a id="homeBtn" href="index.html" class="nav-link-button">Back to Shopping</a>
+  <div class="account-menu" id="accountMenu">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="order-history.html">Order History</a>
+          <a href="address-details.html">Address Book</a>
+          <a href="user-settings.html">User Settings</a>
+          <button type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+    </header>
+  <div class="address-container">
+    <div class="address-header">
+      <h1>Address Book</h1>
+      <p>Manage your saved shipping addresses</p>
+    </div>
+    <div class="address-list" id="addressList"></div>
+  <!-- Modal for Add/Edit Address -->
+  <div id="addressModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="closeModalBtn">&times;</span>
+      <h2 id="modalTitle">Add/Edit Address</h2>
+      <form id="addressForm">
+        <div class="form-group">
+          <label for="modalFullAddress">Full Address</label>
+          <textarea id="modalFullAddress" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="modalPincode">Pincode</label>
+          <input type="text" id="modalPincode" required />
+        </div>
+        <div class="form-group">
+          <label for="modalPhone">Phone Number</label>
+          <input type="text" id="modalPhone" required />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="save-btn" id="modalSaveBtn">Save</button>
+          <button type="button" class="cancel-btn" id="modalCancelBtn">Cancel</button>
+        </div>
+        <div id="modalError" class="address-error" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
+
+  </div>
+  <script src="backend-integration.js"></script>
+  <script>
+    function toggleAccount() {
+      const dropdown = document.getElementById('accountDropdown');
+      dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+    }
+    function logout() {
+      window.QuickKartAPI.apiLogout();
+      window.location.href = 'login.html';
+    }
+    window.performSearch = function() {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (!searchTerm) return;
+      window.location.href = `customer.html?search=${encodeURIComponent(searchTerm)}`;
+    }
+    // Address Book Logic
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = getCurrentUser && getCurrentUser();
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      // Show My Account menu if user is logged in
+      document.getElementById('accountMenu').style.display = 'block';
+      let res = await window.QuickKartAPI.apiGetAddresses(user.username);
+      let addresses = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+      if (!addresses.length && user.address) {
+        addresses = [{ address: user.address, pincode: user.pincode, phone: user.phone }];
+      }
+      renderAddressList(addresses);
+      function renderAddressList(addresses) {
+        const list = document.getElementById('addressList');
+        let html = '';
+        // Sort addresses so default is always first
+        const sortedAddresses = [...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
+        // Add address card
+        html += `<div class="add-address-card" onclick="openAddressModal()">
+          <div class="plus">+</div>
+          <div style="font-size:1.2rem; color:#888; font-weight:600;">Add address</div>
+        </div>`;
+        // Address cards
+        if (!sortedAddresses.length) {
+          html += '<div class="no-orders">No addresses saved yet.</div>';
+        } else {
+          sortedAddresses.forEach((addr, idx) => {
+            // Get customer name (from addr.name, addr.customerName, or fallback to user.username)
+            const customerName = addr.name || addr.customerName || user.username || 'Customer';
+            const addressText = addr.fullAddress || addr.address || '';
+            const city = addr.city ? addr.city : '';
+            const state = addr.state ? addr.state : '';
+            const country = addr.country ? addr.country : 'India';
+            html += `<div class="address-card${idx===0?' primary':''}">
+              ${idx===0?'<span class="default-label">Default</span>':''}
+              <div style="font-weight:700; color:#333; font-size:1.1rem; margin-bottom:0.3rem;">${customerName}</div>
+              <div style="color:#333; margin-bottom:0.3rem;">${addressText ? addressText : '<span style=\"color:#bbb;\">No address provided</span>'}</div>
+              <div style="color:#888; margin-bottom:0.3rem;">${addr.pincode ? addr.pincode : ''}${city ? ' ' + city : ''}</div>
+              <div style="color:#888; margin-bottom:0.3rem;">${state ? state + ' ' : ''}${country}</div>
+              <div style="color:#888; margin-bottom:0.3rem;">Phone: <span style="color:#333;">${addr.phone ? addr.phone : ''}</span></div>
+              <div class="address-actions">
+                <div style="display:flex;gap:1.2rem;">
+                  <button class="save-btn" style="background:#f46303;" onclick="openAddressModal(${idx})">Edit</button>
+                  ${idx!==0?`<button class="cancel-btn" onclick="removeAddress(${idx})">Remove</button>`:''}
+                </div>
+                ${idx!==0?``:''}
+              </div>
+            </div>`;
+          });
+        }
+        list.innerHTML = html;
+        // Remove any accidental CSS output
+        const accidentalCss = document.querySelector('.address-container > style');
+        if (accidentalCss) accidentalCss.remove();
+      }
+      // Modal logic
+      function openAddressModal(idx = null) {
+        const modal = document.getElementById('addressModal');
+        const form = document.getElementById('addressForm');
+        const title = document.getElementById('modalTitle');
+        const errorDiv = document.getElementById('modalError');
+        errorDiv.style.display = 'none';
+        if (idx !== null && addresses[idx]) {
+          title.textContent = 'Edit Address';
+          const addr = addresses[idx];
+          document.getElementById('modalFullAddress').value = addr.fullAddress || addr.address || '';
+          document.getElementById('modalPincode').value = addr.pincode || '';
+          document.getElementById('modalPhone').value = addr.phone || '';
+          form.onsubmit = async function(e) {
+            e.preventDefault();
+            // Update address
+            const updated = {
+              fullAddress: document.getElementById('modalFullAddress').value,
+              pincode: document.getElementById('modalPincode').value,
+              phone: document.getElementById('modalPhone').value
+            };
+            const user = getCurrentUser();
+            const res = await window.QuickKartAPI.apiUpdateAddress(user.username, addr.id, updated);
+            if (res && res.success) {
+              // Reload addresses from backend
+              let reload = await window.QuickKartAPI.apiGetAddresses(user.username);
+              addresses = (reload && reload.success && Array.isArray(reload.data)) ? reload.data : [];
+              renderAddressList(addresses);
+              // Reload user and update localStorage
+              let userRes = await window.QuickKartAPI.apiGetUser(user.username);
+              if (userRes && userRes.success) {
+                localStorage.setItem('user', JSON.stringify(userRes.data));
+              }
+              // Optionally reload products if on customer.html
+              if (window.location.pathname.includes('customer.html')) {
+                window.location.reload();
+              }
+              closeAddressModal();
+            } else {
+              errorDiv.textContent = res.error || 'Failed to update address';
+              errorDiv.style.display = 'block';
+            }
+          };
+        } else {
+          title.textContent = 'Add Address';
+          document.getElementById('modalFullAddress').value = '';
+          document.getElementById('modalPincode').value = '';
+          document.getElementById('modalPhone').value = '';
+          form.onsubmit = async function(e) {
+            e.preventDefault();
+            // Add address
+            const newAddr = {
+              fullAddress: document.getElementById('modalFullAddress').value,
+              pincode: document.getElementById('modalPincode').value,
+              phone: document.getElementById('modalPhone').value,
+              isDefault: addresses.length === 0 // First address is default
+            };
+            const user = getCurrentUser();
+            const res = await window.QuickKartAPI.apiAddAddress(user.username, newAddr);
+            if (res && res.success) {
+              // Reload addresses from backend
+              let reload = await window.QuickKartAPI.apiGetAddresses(user.username);
+              addresses = (reload && reload.success && Array.isArray(reload.data)) ? reload.data : [];
+              renderAddressList(addresses);
+              closeAddressModal();
+            } else {
+              errorDiv.textContent = res.error || 'Failed to add address';
+              errorDiv.style.display = 'block';
+            }
+          };
+        }
+        modal.style.display = 'flex';
+        document.getElementById('closeModalBtn').onclick = closeAddressModal;
+        document.getElementById('modalCancelBtn').onclick = closeAddressModal;
+      }
+
+      function closeAddressModal() {
+        document.getElementById('addressModal').style.display = 'none';
+      }
+
+      window.openAddressModal = openAddressModal;
+      window.removeAddress = async function(idx) {
+        const addr = addresses[idx];
+        const user = getCurrentUser();
+        const res = await window.QuickKartAPI.apiDeleteAddress(user.username, addr.id);
+        if (res && res.success !== false) {
+          // Reload addresses from backend
+          let reload = await window.QuickKartAPI.apiGetAddresses(user.username);
+          addresses = (reload && reload.success && Array.isArray(reload.data)) ? reload.data : [];
+          renderAddressList(addresses);
+        } else {
+          alert(res.error || 'Failed to remove address');
+        }
+      };
+      window.setDefaultAddress = function(idx) {
+        if (idx > 0) {
+          const def = addresses.splice(idx,1)[0];
+          addresses.unshift(def);
+          renderAddressList(addresses);
+        }
+      }
+      window.editAddress = function(idx) {
+        showAddressForm(addresses[idx], idx);
+      }
+      function showAddressForm(addr = {}, idx = null) {
+        const formHtml = `
+          <form class="address-form" id="addressForm">
+            <label for="address">Full Address</label>
+            <textarea id="address" name="address" required placeholder="Enter your shipping address">${addr.address||''}</textarea>
+            <label for="pincode">Pincode</label>
+            <input type="text" id="pincode" name="pincode" required maxlength="6" pattern="[0-9]{6}" value="${addr.pincode||''}" placeholder="Enter your pincode">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" name="phone" required maxlength="10" pattern="[0-9]{10}" value="${addr.phone||''}" placeholder="Enter your phone number">
+            <div class="address-actions">
+              <button type="submit" class="save-btn">${idx!==null ? 'Update Address' : 'Save Address'}</button>
+              <button type="button" class="cancel-btn" onclick="hideAddressForm()">Cancel</button>
+            </div>
+            <div id="addressMsg"></div>
+          </form>
+        `;
+        document.getElementById('addressFormContainer').innerHTML = formHtml;
+        document.getElementById('addressFormContainer').style.display = 'block';
+        document.getElementById('addressForm').onsubmit = async function(e) {
+          e.preventDefault();
+          const address = document.getElementById('address').value.trim();
+          const pincode = document.getElementById('pincode').value.trim();
+          const phone = document.getElementById('phone').value.trim();
+          if (!address || !pincode.match(/^[0-9]{6}$/) || !phone.match(/^[0-9]{10}$/)) {
+            showMsg('Please enter valid address, pincode, and phone.', true);
+            return;
+          }
+          try {
+            let result;
+            if (idx!==null) {
+              result = await window.QuickKartAPI.apiUpdateAddress({ address, pincode, phone, idx });
+              addresses[idx] = { address, pincode, phone };
+            } else {
+              result = await window.QuickKartAPI.apiAddAddress({ address, pincode, phone });
+              addresses.push({ address, pincode, phone });
+            }
+            if (result.success) {
+              showMsg('Address saved!', false);
+              renderAddressList(addresses);
+              setTimeout(hideAddressForm, 1200);
+            } else {
+              showMsg(result.error || 'Failed to save address.', true);
+            }
+          } catch (err) {
+            showMsg('Failed to save address.', true);
+          }
+        };
+      }
+      window.hideAddressForm = function() {
+        document.getElementById('addressFormContainer').style.display = 'none';
+      }
+      function showMsg(msg, isError) {
+        const el = document.getElementById('addressMsg');
+        el.textContent = msg;
+        el.className = isError ? 'address-error' : 'address-success';
+      }
+    });
+    window.addEventListener('click', (event) => {
+      if (!event.target.matches('.account-menu button') && !event.target.closest('.account-dropdown')) {
+        const dropdown = document.getElementById('accountDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

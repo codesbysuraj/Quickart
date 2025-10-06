@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Notifications - QuickKart Vendor</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Notification Popup Styles */
+        .order-notification-popup {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            padding: 1.5rem;
+            min-width: 350px;
+            max-width: 400px;
+            z-index: 10000;
+            border-left: 5px solid #ff6b35;
+            animation: slideInRight 0.5s ease-out;
+            display: none;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(500px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .notification-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .notification-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .notification-body {
+            margin-bottom: 1rem;
+        }
+
+        .notification-message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .notification-details {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+        }
+
+        .notification-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .notification-detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-notification {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-view-orders {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+        }
+
+        .btn-view-orders:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn-dismiss {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-dismiss:hover {
+            background: #e0e0e0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Order Notification Popup -->
+    <div id="orderNotificationPopup" class="order-notification-popup">
+        <div class="notification-header">
+            <div class="notification-title">
+                <span class="notification-icon">🎉</span>
+                <span>New Order Received!</span>
+            </div>
+            <button class="notification-close" onclick="closeOrderNotification()">×</button>
+        </div>
+        <div class="notification-body">
+            <p class="notification-message" id="notificationMessage">
+                You have a new order! A customer just placed an order for your products.
+            </p>
+            <div class="notification-details" id="notificationDetails">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+        <div class="notification-actions">
+            <a href="vendor-orders.html" class="btn-notification btn-view-orders">View Orders</a>
+            <button class="btn-notification btn-dismiss" onclick="closeOrderNotification()">Dismiss</button>
+        </div>
+    </div>
+
+    <!-- Hidden audio for notification sound -->
+    <audio id="notificationSound" preload="auto">
+        <!-- Using a simple beep sound data URI -->
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTcKGGS56+iZUA0PUKXh8Llh" type="audio/wav">
+    </audio>
+
+    <script src="backend-integration.js"></script>
+    <script>
+        const { getCurrentUser, apiGetVendorOrders } = window.QuickKartAPI;
+
+        let lastOrderCount = 0;
+        let checkInterval;
+        let notificationSound;
+
+        // Initialize notification system
+        function initNotificationSystem() {
+            const user = getCurrentUser();
+            if (!user || user.role !== 'VENDOR') {
+                console.log('Not a vendor, notification system disabled');
+                return;
+            }
+
+            console.log('🔔 Notification system initialized for vendor:', user.username);
+            notificationSound = document.getElementById('notificationSound');
+
+            // Load initial order count
+            loadInitialOrderCount();
+
+            // Check for new orders every 15 seconds
+            checkInterval = setInterval(checkForNewOrders, 15000);
+        }
+
+        async function loadInitialOrderCount() {
+            const user = getCurrentUser();
+            const result = await apiGetVendorOrders(user.username);
+            
+            if (result.success) {
+                const ordersMap = new Map();
+                result.data.forEach(item => {
+                    if (!ordersMap.has(item.order.id)) {
+                        ordersMap.set(item.order.id, item.order);
+                    }
+                });
+                lastOrderCount = ordersMap.size;
+                console.log('📊 Initial order count:', lastOrderCount);
+            }
+        }
+
+        async function checkForNewOrders() {
+            const user = getCurrentUser();
+            if (!user) return;
+
+            const result = await apiGetVendorOrders(user.username);
+            
+            if (result.success) {
+                const ordersMap = new Map();
+                const newOrders = [];
+                
+                result.data.forEach(item => {
+                    if (!ordersMap.has(item.order.id)) {
+                        ordersMap.set(item.order.id, item.order);
+                        if (item.order.status === 'PLACED') {
+                            newOrders.push(item.order);
+                        }
+                    }
+                });
+
+                const currentOrderCount = ordersMap.size;
+
+                if (currentOrderCount > lastOrderCount) {
+                    console.log('🎉 NEW ORDER DETECTED!');
+                    console.log('Previous count:', lastOrderCount, 'New count:', currentOrderCount);
+                    
+                    // Show notification
+                    showOrderNotification(newOrders[0], currentOrderCount - lastOrderCount);
+                    
+                    // Play sound
+                    playNotificationSound();
+                    
+                    lastOrderCount = currentOrderCount;
+                }
+            }
+        }
+
+        function showOrderNotification(order, newOrdersCount) {
+            const popup = document.getElementById('orderNotificationPopup');
+            const message = document.getElementById('notificationMessage');
+            const details = document.getElementById('notificationDetails');
+
+            if (newOrdersCount > 1) {
+                message.textContent = `You have ${newOrdersCount} new orders! Customers are ordering your products.`;
+            } else {
+                message.textContent = `You have a new order! A customer just placed an order for your products.`;
+            }
+
+            if (order) {
+                const orderDate = new Date(order.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                details.innerHTML = `
+                    <div class="notification-detail-row">
+                        <span class="detail-label">Order #</span>
+                        <span class="detail-value">${order.id}</span>
+                    </div>
+                    <div class="notification-detail-row">
+                        <span class="detail-label">Customer</span>
+                        <span class="detail-value">${order.user.username}</span>
+                    </div>
+                    <div class="notification-detail-row">
+                        <span class="detail-label">Amount</span>
+                        <span class="detail-value">₹${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="notification-detail-row">
+                        <span class="detail-label">Time</span>
+                        <span class="detail-value">${orderDate}</span>
+                    </div>
+                `;
+            }
+
+            popup.style.display = 'block';
+
+            // Auto-hide after 30 seconds
+            setTimeout(() => {
+                closeOrderNotification();
+            }, 30000);
+        }
+
+        function closeOrderNotification() {
+            const popup = document.getElementById('orderNotificationPopup');
+            popup.style.display = 'none';
+        }
+
+        function playNotificationSound() {
+            try {
+                if (notificationSound) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(err => {
+                        console.log('Could not play notification sound:', err);
+                    });
+                }
+            } catch (err) {
+                console.log('Error playing sound:', err);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', initNotificationSystem);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (checkInterval) clearInterval(checkInterval);
+        });
+
+        // Export for use in other pages
+        window.OrderNotificationSystem = {
+            init: initNotificationSystem,
+            check: checkForNewOrders,
+            show: showOrderNotification
+        };
+    </script>
+</body>
+</html>

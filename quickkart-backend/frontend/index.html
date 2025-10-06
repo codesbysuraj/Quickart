@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+  <title>QuicKart</title>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo" > </a>
+    </div>
+    <div class="search-bar">
+      <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+      <input type="text" id="searchInput" placeholder="Search for products..." onkeypress="if(event.key==='Enter') performSearch()" />
+      <button class="search-btn" onclick="performSearch()">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <a id="homeBtn" href="home.html" class="nav-link-button">About</a>
+      <button id="cartBtn" disabled>My Cart</button>
+      <button id="loginBtn" onclick="window.location.href='login.html'">Login</button> 
+      <div class="account-menu" id="accountMenu" style="display: none;">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="order-history.html">Order History</a>
+          <a href="address-details.html">Address Book</a>
+          <a href="user-settings.html">User Settings</a>
+          <a href="#" onclick="logout()">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner" style="width: 100%; margin: 1rem 0;">
+    <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_90,/v1759119574/Frame_9_10_qkvq7j.png" alt="Banner" loading="lazy">
+  </div>
+
+  <section class="section-container">
+    <div class="section-card" onclick="handleSectionClick('all')">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_auto,w_400/v1759479385/Gemini_Generated_Image_g9aam8g9aam8g9aa_v0r3ij.png" alt="All Products" loading="lazy" />
+      <h3>All Products</h3>
+      <p>Browse everything available in your area</p>
+    </div>
+    <div class="section-card" onclick="handleSectionClick('fashion')">
+      <img src="https://res.cloudinary.com/dmlo81dcw/image/upload/f_auto,q_auto,w_400/v1758823641/45d0d3d2-4fbe-48d4-86fb-125aefd45595.png" alt="Fashion" loading="lazy" />
+      <h3>Fashion</h3>
+      <p>Clothing, accessories, and more</p>
+    </div>
+    <div class="section-card" onclick="handleSectionClick('stationery')">
+      <img src="https://res.cloudinary.com/dmlo81dcw/image/upload/f_auto,q_auto,w_400/v1758823651/c5797552-f25d-4bfc-85d3-be405b345fb4.png" alt="Stationery" loading="lazy" />
+      <h3>Stationery</h3>
+      <p>Office supplies, notebooks, pens & more</p>
+    </div>
+    <div class="section-card" onclick="handleSectionClick('electronics')">
+      <img src="https://res.cloudinary.com/dmlo81dcw/image/upload/f_auto,q_auto,w_400/v1758823660/37887e1a-3d47-41e4-90b2-d14aa51947b7.png" alt="Electronics" loading="lazy" />
+      <h3>Electronics</h3>
+      <p>Latest gadgets and devices</p>
+    </div>
+    <div class="section-card" onclick="handleSectionClick('snacks')">
+      <img src="https://res.cloudinary.com/dmlo81dcw/image/upload/f_auto,q_auto,w_400/v1758823667/792b3bea-4136-482c-8555-bf24496ecdcb.png" alt="Groceries" loading="lazy" />
+      <h3>Snacks and Beverages</h3>
+      <p>Tasty treats and beverages</p>
+    </div>
+  <!-- Products grid removed from index.html, will show on products page -->
+  </section>
+
+  <script src="backend-integration.js"></script>
+  <script>
+    const API = window.QuickKartAPI || {
+      notifyInfo: (msg) => { console.info(msg); alert(msg); },
+      notifyWarning: (msg) => { console.warn(msg); alert(msg); }
+    };
+
+    // Global variable to hold user role status
+    let currentUserRole = null;
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkUserLoginAndRedirect();
+      updateCartButton();
+    });
+
+    function checkUserLoginAndRedirect() {
+      const userRole = localStorage.getItem('userRole');
+      const userName = localStorage.getItem('userName');
+
+      if (userRole && userName) {
+        currentUserRole = userRole;
+        
+        // Hide Login button, show Account menu
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('accountMenu').style.display = 'inline-block';
+        
+        // Removed: Immediate redirect for vendor. Vendor now stays on index.html.
+
+      } else {
+        currentUserRole = null;
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('accountMenu').style.display = 'none';
+      }
+    }
+
+    function toggleAccount() {
+      const dropdown = document.getElementById("accountDropdown");
+      dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+    }
+
+    function logout() {
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      sessionStorage.removeItem('cart');
+      // Clear other stored details
+      localStorage.removeItem('userPhone');
+      localStorage.removeItem('userAddress');
+      localStorage.removeItem('userPincode');
+      localStorage.removeItem('shopCategory');
+      localStorage.removeItem('shopAddress');
+      
+      // Refresh page to update UI/state
+      window.location.reload(); 
+    }
+
+    // Handle section clicks: Redirect customer to customer.html, vendor to vendor.html (their shop)
+    function handleSectionClick(category) {
+      if (currentUserRole === 'CUSTOMER') {
+        window.location.href = `customer.html?category=${category}`;
+      } else if (currentUserRole === 'VENDOR') {
+        // Vendor redirects to vendor.html to see their products (uses API)
+        window.location.href = `vendor.html?category=${category}`;
+      } else {
+        // If not logged in, prompt to login (or navigate to login page)
+        API.notifyInfo('Please log in to browse products tailored for you.');
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Update cart button based on user role
+    function updateCartButton() {
+      const cartBtn = document.getElementById('cartBtn');
+      const userRole = localStorage.getItem('userRole');
+
+      if (!userRole) {
+        cartBtn.disabled = true;
+        cartBtn.textContent = 'My Cart';
+        cartBtn.onclick = null;
+        return;
+      }
+
+      cartBtn.disabled = false;
+
+      if (userRole === 'CUSTOMER') {
+  const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+  const count = cart.length;
+  cartBtn.textContent = count > 0 ? `My Cart (${count})` : 'My Cart';
+  cartBtn.onclick = function() { window.location.href = 'customer.html?view=cart'; };
+      } else if (userRole === 'VENDOR') {
+        // Vendor's 'My Shop' button links to vendor dashboard
+        cartBtn.textContent = 'My Shop';
+        cartBtn.onclick = function() { window.location.href = 'vendor.html'; }; 
+      }
+    }
+
+    // --- Instant Product Search & Display ---
+    let allProducts = [];
+    let displayedProducts = [];
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      checkUserLoginAndRedirect();
+      updateCartButton();
+      // Restore search: redirect to products page
+      document.getElementById('searchInput').onkeypress = function(e) {
+        if (e.key === 'Enter') performSearch();
+      };
+      document.querySelector('.search-btn').onclick = performSearch;
+    });
+
+    // Restore search: redirect to products page
+    function performSearch() {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (!searchTerm) {
+        API.notifyInfo('Type something to search for before we look it up.');
+        return;
+      }
+      const userRole = localStorage.getItem('userRole');
+      if (userRole === 'CUSTOMER') {
+        window.location.href = `customer.html?search=${encodeURIComponent(searchTerm)}`;
+      } else if (userRole === 'VENDOR') {
+        window.location.href = `vendor.html?search=${encodeURIComponent(searchTerm)}`;
+      } else {
+        API.notifyInfo('Login to search across our catalogue.');
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
+</body>
+</html>

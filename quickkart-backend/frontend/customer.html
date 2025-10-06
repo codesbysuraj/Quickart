@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css?v=202501051830">
+  <title>QuicKart - Products</title>
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759063522/title-logo_rbudo9.png">
+  <style>
+    /* Pincode Selector Styles */
+    .pincode-selector-box {
+      text-align: center;
+      margin: 1.5rem auto 2rem;
+      max-width: 900px;
+      background: transparent;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+    
+    .pincode-label {
+      font-weight: 600;
+      color: #333;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .location-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #FF6B35 0%, #FF9800 100%);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 2px 6px rgba(255, 107, 53, 0.25);
+    }
+    
+    .pincode-dropdown {
+      padding: 0.6rem 2.5rem 0.6rem 1.2rem;
+      border-radius: 25px;
+      border: 2px solid #D0D0D0;
+      font-size: 1.1rem;
+      cursor: pointer;
+      background: white;
+      font-weight: 500;
+      min-width: 140px;
+      color: #333;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"%3e%3cpath d="M1 1L6 7L11 1" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/%3e%3c/svg%3e');
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      transition: all 0.2s ease;
+    }
+    
+    .pincode-dropdown:hover {
+      border-color: #FF9800;
+      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+    }
+    
+    .pincode-dropdown:focus {
+      outline: none;
+      border-color: #FF6B35;
+      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.12);
+    }
+    
+    .pincode-info {
+      display: none;
+    }
+    
+    /* Cart Actions Styles */
+    .cart-actions {
+  padding-right: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  background: transparent;
+  z-index: 2;
+  margin-left: auto;
+    }
+    
+    .cart-total-box {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 0.5rem 1.5rem;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #333;
+      border: 1.5px solid #f0f8ff;
+      display: inline-flex;
+      align-items: center;
+      height: 40px;
+      margin-right: 0.2rem;
+      letter-spacing: 0.02em;
+    }
+    
+    .cart-qty-btn {
+      margin: 0 5px;
+      padding: 5px 12px;
+      background: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .cart-qty-btn:hover {
+      background: #ff6b35;
+    }
+    .remove-btn {
+      display: block;
+      width: 70%;
+      margin: 0px auto 0 auto;
+      padding: 12px 0;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.08rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .remove-btn:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo"></a>
+    </div>
+    <div class="search-bar">
+      <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+      <input type="text" id="searchInput" placeholder="Search for products..." onkeypress="if(event.key==='Enter') searchProducts()" />
+      <button class="search-btn" onclick="searchProducts()">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <a href="home.html" class="nav-link-button">About</a>
+      <button id="cartBtn">My Cart</button>
+      <div class="account-menu" id="accountMenu" style="display: none;">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="order-history.html">Order History</a>
+          <a href="address-details.html">Address Book</a>
+          <a href="user-settings.html">User Settings</a>
+          <button type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="page-header">
+      <a href="index.html">
+          <button class="back-btn" style="margin-right: auto; display: block;">← Back to Categories</button></a>
+      <h1 id="pageTitle">Product Listings</h1>
+      <p id="pageDescription">Browse the best products from your local vendors.</p>
+    </div>
+
+    <div style="text-align: center; width: 100%;">
+      <div id="pincodeSelector" class="pincode-selector-box" style="display: inline-flex;">
+        <label for="pincodeDropdown" class="pincode-label">
+          <span class="location-icon">📍</span>
+          Deliver to:
+        </label>
+        <select id="pincodeDropdown" onchange="switchPincode()" class="pincode-dropdown">
+          <option value="">Select Pincode</option>
+        </select>
+        <span id="pincodeInfo" class="pincode-info"></span>
+      </div>
+    </div>
+
+    <!-- Category Navigation -->
+    <div class="category-nav" style="margin: 1rem auto; max-width: 1200px; text-align: center;">
+      <button class="category-btn" onclick="switchCategory('all')" id="btn-all">All Products</button>
+      <button class="category-btn" onclick="switchCategory('fashion')" id="btn-fashion">Fashion</button>
+      <button class="category-btn" onclick="switchCategory('electronics')" id="btn-electronics">Electronics</button>
+      <button class="category-btn" onclick="switchCategory('stationery')" id="btn-stationery">Stationery</button>
+      <button class="category-btn" onclick="switchCategory('snacks')" id="btn-snacks">Snacks</button>
+      <button class="category-btn" onclick="switchCategory('other')" id="btn-other">Other</button>
+    </div>
+
+    <!-- Cart Actions -->
+    <div id="cartActions" class="cart-actions" style="display:none;">
+      <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; padding-right: 7rem; gap: 1rem;">
+        <span id="cartTotalBox" class="cart-total-box"></span>
+        <button onclick="buyNow()" class="add-product-btn">Place Order</button>
+      </div>
+    </div>    <!-- Products Grid -->
+    <div id="productsGrid" class="products-grid animated"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <h3>No products available</h3>
+      <p>Try a different category or check back later!</p>
+    </div>
+  </main>
+  
+  <!-- Backend Integration -->
+  <script src="backend-integration.js"></script>
+  
+  <script>
+    // Global variables
+    const API = window.QuickKartAPI;
+    let currentUser = null;
+    let currentCategory = '';
+    let allProducts = [];
+    let cartItems = [];
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async function() {
+      API.log.info('Page loaded - Starting initialization');
+      
+      // CRITICAL: Check if user is logged in as a customer
+      await checkUserLogin();
+
+      // Get category, view (cart), and search from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      currentCategory = urlParams.get('category') || 'all'; // Default to show all products
+      const view = urlParams.get('view');
+      const searchTerm = urlParams.get('search');
+
+      updatePageHeader();
+
+      if (view === 'cart') {
+        showMyCart();
+      } else if (searchTerm) {
+        // Set search input and perform search
+        document.getElementById('searchInput').value = searchTerm;
+        searchProducts();
+      } else {
+        loadProductsForCategory();
+      }
+    });
+
+    async function checkUserLogin() {
+      const userRole = localStorage.getItem('userRole');
+      const userName = localStorage.getItem('userName');
+
+      // CRITICAL: Only allow CUSTOMER role (case insensitive)
+      if (!userRole || userRole.toUpperCase() !== 'CUSTOMER') {
+        API.notifyError('Access denied. Please sign in as a customer to continue.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      currentUser = API.getCurrentUser();
+      if (!currentUser) {
+        currentUser = { role: userRole, username: userName };
+      }
+
+      API.log.success('Customer logged in', currentUser);
+      document.getElementById('accountMenu').style.display = 'inline-block';
+
+      // Load user addresses and setup pincode selector
+      await loadUserAddresses();
+      
+      // Load products from backend
+      await loadProductsFromBackend();
+      updateCartButton();
+      await updatePincodeDropdownState();
+    }
+    
+    // Load user addresses for pincode selector
+    async function loadUserAddresses() {
+      if (!currentUser || !currentUser.username) {
+        API.log.warn('No current user found for loading addresses');
+        return;
+      }
+      
+      API.log.info('Loading addresses for user:', currentUser.username);
+      const result = await API.apiGetAddresses(currentUser.username);
+      
+      API.log.info('Address result:', result);
+      
+      if (result && result.success && result.data && result.data.length > 0) {
+        const addresses = result.data;
+        const dropdown = document.getElementById('pincodeDropdown');
+        const selector = document.getElementById('pincodeSelector');
+        
+        API.log.success(`Found ${addresses.length} addresses`);
+        
+        // Clear existing options except first
+        dropdown.innerHTML = '<option value="">Select Pincode</option>';
+        
+        // Get unique pincodes
+        const uniquePincodes = [...new Set(addresses.map(addr => addr.pincode).filter(p => p))];
+        
+        API.log.info('Unique pincodes:', uniquePincodes);
+        
+        if (uniquePincodes.length === 0) {
+          // No pincodes found, use current user pincode
+          if (currentUser.pincode) {
+            uniquePincodes.push(currentUser.pincode);
+          }
+        }
+        
+        // Add options
+        uniquePincodes.forEach(pincode => {
+          const option = document.createElement('option');
+          option.value = pincode;
+          option.textContent = pincode;
+          dropdown.appendChild(option);
+        });
+        
+        // Set pincode: Check session first (for navigation), then default address
+        let selectedPincode = null;
+        const sessionPincode = sessionStorage.getItem('selectedPincode');
+        const defaultAddress = addresses.find(a => a.isDefault);
+        
+        // Priority: session pincode (if valid) → default address → user pincode → first available
+        if (sessionPincode && uniquePincodes.includes(sessionPincode)) {
+          selectedPincode = sessionPincode;
+          API.log.info('Restored pincode from session:', selectedPincode);
+        } else if (defaultAddress && defaultAddress.pincode) {
+          selectedPincode = defaultAddress.pincode;
+          // Save to session for future page loads
+          sessionStorage.setItem('selectedPincode', selectedPincode);
+          API.log.info('Using default address pincode:', selectedPincode);
+        } else if (currentUser.pincode) {
+          selectedPincode = currentUser.pincode;
+          sessionStorage.setItem('selectedPincode', selectedPincode);
+        } else {
+          selectedPincode = uniquePincodes[0];
+          sessionStorage.setItem('selectedPincode', selectedPincode);
+        }
+        
+        if (selectedPincode) {
+          dropdown.value = selectedPincode;
+          updatePincodeInfo(selectedPincode);
+          API.log.success('Pincode selector initialized with pincode:', selectedPincode);
+        }
+        
+        // Show the selector
+        selector.style.display = 'inline-flex';
+      } else {
+        // No addresses found, show selector with user's pincode if available
+        if (currentUser.pincode) {
+          const dropdown = document.getElementById('pincodeDropdown');
+          const selector = document.getElementById('pincodeSelector');
+          
+          dropdown.innerHTML = '<option value="">Select Pincode</option>';
+          const option = document.createElement('option');
+          option.value = currentUser.pincode;
+          option.textContent = currentUser.pincode;
+          dropdown.appendChild(option);
+          dropdown.value = currentUser.pincode;
+          
+          sessionStorage.setItem('selectedPincode', currentUser.pincode);
+          updatePincodeInfo(currentUser.pincode);
+          selector.style.display = 'inline-flex';
+          API.log.info('Using user pincode from profile:', currentUser.pincode);
+        } else {
+          API.log.warn('No addresses or pincode found for user');
+        }
+      }
+    }
+    
+    function updatePincodeInfo(pincode) {
+      const infoSpan = document.getElementById('pincodeInfo');
+      if (infoSpan && pincode) {
+        infoSpan.textContent = ''; // No additional info text needed
+      }
+    }
+    
+    // Update pincode dropdown state based on cart status
+    async function updatePincodeDropdownState() {
+      const dropdown = document.getElementById('pincodeDropdown');
+      if (!dropdown || !currentUser) return;
+      
+      // Check cart status
+      const cartResult = await API.apiGetCart(currentUser.username);
+      const hasCartItems = cartResult.success && cartResult.data.length > 0;
+      
+      if (hasCartItems) {
+        dropdown.style.opacity = '0.6';
+        dropdown.style.cursor = 'not-allowed';
+        dropdown.title = 'Empty your cart to change delivery pincode';
+      } else {
+        dropdown.style.opacity = '1';
+        dropdown.style.cursor = 'pointer';
+        dropdown.title = 'Select delivery pincode';
+      }
+    }
+    
+    async function switchPincode() {
+      const dropdown = document.getElementById('pincodeDropdown');
+      const selectedPincode = dropdown.value;
+      
+      if (!selectedPincode) {
+        API.notifyWarning('Please select a pincode');
+        return;
+      }
+      
+      // Check if cart has items - if yes, prevent pincode change
+      const cartResult = await API.apiGetCart(currentUser.username);
+      if (cartResult.success && cartResult.data.length > 0) {
+        API.notifyError('Cannot change pincode with items in cart. Please empty your cart first or complete your order.', {
+          title: 'Cart Not Empty',
+          duration: 4000
+        });
+        // Restore previous pincode from session
+        const previousPincode = sessionStorage.getItem('selectedPincode');
+        if (previousPincode) {
+          dropdown.value = previousPincode;
+        }
+        return;
+      }
+      
+      // Save selected pincode to session for this browsing session
+      sessionStorage.setItem('selectedPincode', selectedPincode);
+      
+      updatePincodeInfo(selectedPincode);
+      
+      API.notifyInfo(`Switched to pincode: ${selectedPincode}`);
+      
+      // Reload products for new pincode
+      await loadProductsFromBackend();
+      loadProductsForCategory();
+    }
+
+    // Load products from backend API - FILTERED BY PINCODE (Local E-Commerce Feature)
+    async function loadProductsFromBackend() {
+      // Get pincode from dropdown
+      const dropdown = document.getElementById('pincodeDropdown');
+      const userPincode = dropdown ? dropdown.value : (currentUser.pincode || null);
+      const productMap = new Map();
+      let localCount = 0;
+
+      if (userPincode) {
+        API.log.info('Loading LOCAL products for pincode:', userPincode);
+      } else {
+        API.log.info('Loading products without pincode filter');
+      }
+
+      API.showLoading(true);
+      // Only fetch products for user's pincode - no global products
+      const localResult = userPincode 
+        ? await API.apiGetProducts(userPincode) 
+        : { success: false, error: 'No pincode available' };
+      API.showLoading(false);
+
+      if (!localResult.success) {
+        API.log.error('Failed to load products for your area', localResult.error);
+        allProducts = [];
+        return;
+      }
+
+      // All products are local (from user's pincode)
+      localResult.data.forEach(product => {
+        const enriched = { ...product, isLocal: true };
+        productMap.set(enriched.id, enriched);
+      });
+      localCount = localResult.data.length;
+
+      allProducts = Array.from(productMap.values())
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      API.log.success(`Products loaded from pincode ${userPincode}`, { total: allProducts.length });
+    }
+
+    function updatePageHeader() {
+        const categoryName = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+        const view = new URLSearchParams(window.location.search).get('view');
+
+        if (view === 'cart') {
+            document.getElementById('pageTitle').textContent = 'My Shopping Cart';
+            document.getElementById('pageDescription').textContent = 'Review your selected items before checkout.';
+        } else if (currentCategory === 'all') {
+            document.getElementById('pageTitle').textContent = 'All Products';
+            document.getElementById('pageDescription').textContent = 'Browse all items available on QuickKart.';
+        } else {
+            document.getElementById('pageTitle').textContent = `${categoryName} Products`;
+            document.getElementById('pageDescription').textContent = `Find the best deals in the ${categoryName} section.`;
+        }
+
+        // Update active category button
+        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById(`btn-${currentCategory}`);
+        if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    // Function to switch categories
+    function switchCategory(category) {
+        currentCategory = category;
+        updatePageHeader();
+        loadProductsForCategory();
+        
+        // Update URL without page reload
+        const url = new URL(window.location);
+        if (category === 'all') {
+            url.searchParams.delete('category');
+        } else {
+            url.searchParams.set('category', category);
+        }
+        window.history.pushState({}, '', url);
+    }
+
+    function searchProducts() {
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      
+      // If search is empty, reload all products
+      if (!searchTerm) {
+        loadProductsForCategory();
+        return;
+      }
+      
+      // Filter from the currently loaded products
+      const filtered = allProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.category.toLowerCase().includes(searchTerm) ||
+        (product.description && product.description.toLowerCase().includes(searchTerm))
+      );
+      
+      const productsGrid = document.getElementById('productsGrid');
+      const emptyState = document.getElementById('emptyState');
+      
+      // Show empty state if no results
+      if (filtered.length === 0) {
+        productsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+          <h3>No results found</h3>
+          <p>No products match "${searchTerm}"</p>
+          <button onclick="document.getElementById('searchInput').value=''; searchProducts();" class="add-product-btn">Clear Search</button>
+        `;
+        return;
+      }
+      
+      // Display filtered products
+      productsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+      productsGrid.innerHTML = '';
+      
+      filtered.forEach((product, index) => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.style.animationDelay = `${index * 0.1}s`;
+        let addToCartBtn = '';
+        if ((product.stock || 0) === 0) {
+          addToCartBtn = `<button class="add-to-cart-btn" disabled style="background:#ccc;color:#fff;cursor:not-allowed;">Out of Stock</button>`;
+        } else {
+          addToCartBtn = `<button class="add-to-cart-btn" onclick="addToCart(${product.id})">Add to Cart</button>`;
+        }
+        productCard.innerHTML = `
+          <img src="${product.imageUrl || 'https://placehold.co/280x200/cccccc/333333?text=No+Image'}"
+               alt="${product.name}"
+               onerror="this.src='https://placehold.co/280x200/cccccc/333333?text=Image+Missing'" />
+          <h3>${product.name}</h3>
+          <div class="price">Rs ${product.price.toFixed(2)}</div>
+          <div class="description">${product.description || 'No description available'}</div>
+          <p style="font-size:12px; color:#666;">Category: ${product.category || 'N/A'}</p>
+          <div style="font-size:13px; color:#333; font-weight:600; margin-bottom:6px;">Stock: <span>${product.stock || 0}</span></div>
+          ${addToCartBtn}
+        `;
+        productsGrid.appendChild(productCard);
+      });
+      productsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+    }
+
+    function loadProductsForCategory() {
+      const productsGrid = document.getElementById('productsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const cartActions = document.getElementById('cartActions');
+      const categoryNav = document.querySelector('.category-nav');
+      const pincodeSelector = document.querySelector('.pincode-selector');
+
+      // Hide cart actions when showing products
+      if (cartActions) cartActions.style.display = 'none';
+      
+      // Show category navigation and pincode selector when viewing products
+      if (categoryNav) categoryNav.style.display = 'block';
+      if (pincodeSelector) pincodeSelector.style.display = 'flex';
+
+      // Filter products by category
+      let categoryProducts = allProducts;
+      if (currentCategory && currentCategory !== 'all') {
+        categoryProducts = allProducts.filter(product =>
+          product.category && product.category.toLowerCase() === currentCategory.toLowerCase()
+        );
+      }
+
+      if (categoryProducts.length === 0) {
+        productsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = '<h3>No products available</h3><p>Try a different category or check back later!</p>';
+        return;
+      }
+
+      // Clear existing products
+      productsGrid.innerHTML = '';
+
+      // Add products to grid
+      categoryProducts.forEach((product, index) => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.style.animationDelay = `${index * 0.1}s`;
+        let addToCartBtn = '';
+        if ((product.stock || 0) === 0) {
+          addToCartBtn = `<button class="add-to-cart-btn" disabled style="background:#ccc;color:#fff;cursor:not-allowed;">Out of Stock</button>`;
+        } else {
+          addToCartBtn = `<button class="add-to-cart-btn" onclick="addToCart(${product.id})">Add to Cart</button>`;
+        }
+        productCard.innerHTML = `
+          <img src="${product.imageUrl || 'https://placehold.co/280x200/cccccc/333333?text=No+Image'}"
+               alt="${product.name}"
+               onerror="this.src='https://placehold.co/280x200/cccccc/333333?text=Image+Missing'" />
+          <h3>${product.name}</h3>
+          <div class="price">Rs ${product.price.toFixed(2)}</div>
+          <div class="description">${product.description || 'No description available'}</div>
+          <p style="font-size:12px; color:#666;">Category: ${product.category || 'N/A'}</p>
+          <div style="font-size:13px; color:#333; font-weight:600; margin-bottom:6px;">Stock: <span>${product.stock || 0}</span></div>
+          ${addToCartBtn}
+        `;
+        productsGrid.appendChild(productCard);
+      });
+
+      productsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+    }
+
+    async function showMyCart() {
+      const productsGrid = document.getElementById('productsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const cartActions = document.getElementById('cartActions');
+      const categoryNav = document.querySelector('.category-nav');
+      const pincodeSelector = document.querySelector('.pincode-selector');
+
+      updatePageHeader(); // Update header to 'My Shopping Cart'
+      
+      // Hide category navigation and pincode selector when viewing cart
+      if (categoryNav) categoryNav.style.display = 'none';
+      if (pincodeSelector) pincodeSelector.style.display = 'none';
+
+      // Load cart from backend
+      API.showLoading(true);
+      const result = await API.apiGetCart(currentUser.username);
+      API.showLoading(false);
+
+      if (!result.success) {
+        API.notifyError(`Failed to load your cart: ${result.error || 'Please try again shortly.'}`);
+        return;
+      }
+
+      cartItems = result.data;
+
+      if (cartItems.length === 0) {
+        productsGrid.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = '<h3>Your cart is empty</h3><p>Add some products to your cart by browsing categories!</p>';
+        cartActions.style.display = 'none';
+        return;
+      }
+
+      // Show Buy Now button
+      cartActions.style.display = 'block';
+
+      // Clear existing products
+      productsGrid.innerHTML = '';
+
+      let totalAmount = 0;
+
+      // Add cart items to grid
+      cartItems.forEach((item, index) => {
+        const product = item.product;
+        const itemTotal = product.price * item.quantity;
+        totalAmount += itemTotal;
+
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.style.animationDelay = `${index * 0.1}s`;
+
+        productCard.innerHTML = `
+          <img src="${product.imageUrl || 'https://placehold.co/280x200/cccccc/333333?text=No+Image'}" 
+               alt="${product.name}" 
+               onerror="this.src='https://placehold.co/280x200/cccccc/333333?text=Image+Missing'" />
+          <h3>${product.name}</h3>
+          <div class="price">Rs ${product.price.toFixed(2)}</div>
+          <div class="stock-info">
+            Quantity: 
+            <button onclick="decreaseCartQuantity(${item.id}, ${product.id})" class="cart-qty-btn">-</button>
+            <span id="cart-qty-${item.id}" style="font-weight: bold; font-size: 16px;">${item.quantity}</span>
+            <button onclick="increaseCartQuantity(${item.id}, ${product.id})" class="cart-qty-btn">+</button>
+          </div>
+          <p><strong>Subtotal: Rs <span id="cart-subtotal-${item.id}">${itemTotal.toFixed(2)}</span></strong></p>
+          <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove from Cart</button>
+        `;
+
+        productsGrid.appendChild(productCard);
+      });
+
+      // Show total in cartActions (left side, white box)
+      const cartTotalBox = document.getElementById('cartTotalBox');
+      if (cartTotalBox) {
+        cartTotalBox.textContent = `Total: Rs ${totalAmount.toFixed(2)}`;
+      }
+
+      productsGrid.style.display = 'grid';
+      emptyState.style.display = 'none';
+    }
+    
+    // Add to Cart function - ONLY FOR CUSTOMERS, uses backend API
+    async function addToCart(productId) {
+      // CRITICAL: Verify user is customer (case insensitive)
+      if (!currentUser || (currentUser.role.toUpperCase() !== 'CUSTOMER')) {
+        API.notifyInfo('Sign in as a customer to add items to your cart.');
+        API.log.error('Cart access denied', { user: currentUser });
+        return;
+      }
+
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) {
+        API.notifyError('We couldn’t find that product. It may have just sold out.');
+        return;
+      }
+      if (product.stock === 0) {
+        API.notifyError(`${product.name} is out of stock!`, { title: 'Out of Stock', duration: 2500 });
+        return;
+      }
+      // Call backend API to add to cart
+      API.showLoading(true);
+      const result = await API.apiAddToCart(currentUser.username, productId, 1);
+      API.showLoading(false);
+
+      if (result.success) {
+        API.notifySuccess(`${product.name} added to your cart.`, { title: 'Cart updated', duration: 2200 });
+        updateCartButton();
+        await updatePincodeDropdownState();
+        // Reload products from backend to update stock
+        await loadProductsFromBackend();
+        loadProductsForCategory();
+      } else {
+        API.notifyError(`Failed to add to cart: ${result.error || 'Please try again later.'}`);
+      }
+    }
+
+    // Remove from Cart function - uses backend API
+    async function removeFromCart(cartItemId) {
+      const confirmed = await API.confirm({
+        title: 'Remove item?',
+        message: 'This product will be removed from your cart.',
+        confirmText: 'Remove',
+        cancelText: 'Keep item',
+        tone: 'warning'
+      });
+
+      if (!confirmed) return;
+
+      API.showLoading(true);
+      const result = await API.apiRemoveFromCart(cartItemId);
+      API.showLoading(false);
+
+      if (result.success) {
+        API.notifySuccess('Removed from your cart.', { title: 'Cart updated', duration: 2200 });
+        updateCartButton();
+        await updatePincodeDropdownState();
+        showMyCart();
+      } else {
+        API.notifyError(`Failed to remove item: ${result.error || 'Please try again later.'}`);
+      }
+    }
+
+    // Increase cart item quantity
+    async function increaseCartQuantity(cartItemId, productId) {
+      const cartItem = cartItems.find(item => item.id === cartItemId);
+      if (!cartItem) return;
+
+      const product = cartItem.product;
+      const newQuantity = cartItem.quantity + 1;
+
+      // Check stock availability
+      if (newQuantity > product.stock) {
+        API.notifyWarning(`Only ${product.stock} units available in stock.`);
+        return;
+      }
+
+      // Update via backend API
+      API.showLoading(true);
+      const result = await API.apiUpdateCartQuantity(cartItemId, newQuantity);
+      API.showLoading(false);
+
+      if (result.success) {
+        cartItem.quantity = newQuantity;
+        const qtyElement = document.getElementById(`cart-qty-${cartItemId}`);
+        const subtotalElement = document.getElementById(`cart-subtotal-${cartItemId}`);
+        if (qtyElement) qtyElement.textContent = newQuantity;
+        if (subtotalElement) subtotalElement.textContent = (product.price * newQuantity).toFixed(2);
+        
+        // Refresh cart to update total
+        showMyCart();
+      } else {
+        API.notifyError(`Failed to update quantity: ${result.error || 'Please try again.'}`);
+      }
+    }
+
+    // Decrease cart item quantity
+    async function decreaseCartQuantity(cartItemId, productId) {
+      const cartItem = cartItems.find(item => item.id === cartItemId);
+      if (!cartItem || cartItem.quantity <= 1) {
+        API.notifyInfo('Quantity is already at minimum. Use Remove button to delete item.');
+        return;
+      }
+
+      const product = cartItem.product;
+      const newQuantity = cartItem.quantity - 1;
+
+      // Update via backend API
+      API.showLoading(true);
+      const result = await API.apiUpdateCartQuantity(cartItemId, newQuantity);
+      API.showLoading(false);
+
+      if (result.success) {
+        cartItem.quantity = newQuantity;
+        const qtyElement = document.getElementById(`cart-qty-${cartItemId}`);
+        const subtotalElement = document.getElementById(`cart-subtotal-${cartItemId}`);
+        if (qtyElement) qtyElement.textContent = newQuantity;
+        if (subtotalElement) subtotalElement.textContent = (product.price * newQuantity).toFixed(2);
+        
+        // Refresh cart to update total
+        showMyCart();
+      } else {
+        API.notifyError(`Failed to update quantity: ${result.error || 'Please try again.'}`);
+      }
+    }
+
+    // Buy Now function - CRITICAL: Places order via backend API
+    async function buyNow() {
+      if (cartItems.length === 0) {
+        API.notifyInfo('Your cart is empty. Add a few products before checking out.');
+        return;
+      }
+
+      const confirmed = await API.confirm({
+        title: 'Place this order?',
+        message: `We’ll place your order for ${cartItems.length} item${cartItems.length > 1 ? 's' : ''}.`,
+        confirmText: 'Place order',
+        cancelText: 'Keep shopping',
+        tone: 'primary'
+      });
+
+      if (!confirmed) return;
+
+      // Get selected pincode from dropdown for shipping address
+      const dropdown = document.getElementById('pincodeDropdown');
+      const selectedPincode = dropdown ? dropdown.value : currentUser.pincode;
+
+      // Call backend API to place order with selected pincode
+      API.showLoading(true);
+      const result = await API.apiPlaceOrder(currentUser.username, selectedPincode);
+      API.showLoading(false);
+
+      if (result.success) {
+        const order = result.data;
+        API.notifySuccess(`Order #${order.id} confirmed! Redirecting to order history...`, {
+          title: 'Thanks for your purchase!',
+          duration: 3000
+        });
+        
+        // Store order ID for highlighting
+        localStorage.setItem('lastOrderId', order.id);
+        
+        // Clear selected pincode from session (order complete, start fresh next time)
+        sessionStorage.removeItem('selectedPincode');
+        
+        // Update pincode dropdown state (cart is now empty)
+        await updatePincodeDropdownState();
+        
+        // Redirect to order history after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'order-history.html';
+        }, 2000);
+      } else {
+        API.notifyError(`Failed to place order: ${result.error || 'Please try again later.'}`);
+      }
+    }
+    
+    function toggleAccount() {
+      const dropdown = document.getElementById("accountDropdown");
+      dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+    }
+    
+    async function logout() {
+      const confirmed = await API.confirm({
+        title: 'Ready to sign out?',
+        message: 'You can log back in anytime to continue shopping.',
+        confirmText: 'Logout',
+        cancelText: 'Stay logged in',
+        tone: 'warning'
+      });
+
+      if (!confirmed) return;
+
+      API.apiLogout();
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      API.notifyInfo('You’ve been logged out. Come back soon!', { duration: 2500 });
+      window.location.href = 'index.html';
+    }
+
+    // Update cart button based on backend cart data
+    async function updateCartButton() {
+      const cartBtn = document.getElementById('cartBtn');
+      
+      if (!currentUser) {
+        cartBtn.disabled = true;
+        cartBtn.textContent = 'My Cart';
+        return;
+      }
+
+      // Get cart count from backend
+      const result = await API.apiGetCart(currentUser.username);
+      if (result.success) {
+        const count = result.data.length;
+        cartBtn.textContent = `My Cart (${count})`;
+        cartBtn.onclick = function() { window.location.href = 'customer.html?view=cart'; };
+        cartBtn.disabled = false;
+      }
+    }
+    
+    // Close account dropdown when clicking outside
+    window.addEventListener('click', function(event) {
+      if (!event.target.matches('.account-menu button') && !event.target.closest('.account-dropdown')) {
+        const dropdown = document.getElementById('accountDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+      }
+    });
+    
+    // Make switchPincode globally accessible
+    window.switchPincode = switchPincode;
+    
+  </script>
+</body>
+</html>

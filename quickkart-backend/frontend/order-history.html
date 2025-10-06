@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - QuickKart</title>
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .account-menu button {
+      font-size: 1rem;
+    }
+    /* All custom styles go here. Ensure this block is inside <head> and closed properly. */
+    #ordersBtn {
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.5rem 1.5rem;
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+    .order-card {
+  background: #fff;
+  border-radius: 0;
+  padding: 1.5rem 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  max-width: 650px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    .order-id {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ff6b35;
+    }
+    .order-date {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .order-status {
+      display: inline-block;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-placed {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-confirmed {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+    .status-delivered {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .order-items {
+      margin: 1rem 0;
+    }
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .item-details {
+      flex: 1;
+    }
+    .item-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.3rem;
+    }
+    .item-meta {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .item-price {
+      font-weight: bold;
+      color: #ff6b35;
+      font-size: 1.1rem;
+    }
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 2px solid #f0f0f0;
+    }
+    .order-total {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .order-total span {
+      color: #ff6b35;
+    }
+    .btn-view-details {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .btn-view-details:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+    .no-orders {
+      text-align: center;
+      padding: 3rem;
+      color: #666;
+    }
+    .no-orders i {
+      font-size: 4rem;
+      color: #ddd;
+      margin-bottom: 1rem;
+    }
+    .btn-back {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.5rem 1rem;
+      background: #f0f0f0;
+      color: #333;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .btn-back:hover {
+      background: #e0e0e0;
+    }
+    .loading-spinner {
+      text-align: center;
+      padding: 3rem;
+      font-size: 1.2rem;
+      color: #ff6b35;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      50% { transform: scale(1.02); box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4); }
+    }
+    .new-order-highlight {
+      border: 3px solid #ff6b35 !important;
+      animation: pulse 2s ease-in-out 3;
+    }
+    .delete-history-btn {
+      background-color: #f46303;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 0.7rem 2.2rem;
+      font-size: 1.08rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(255, 107, 53, 0.10);
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .delete-history-btn:hover {
+      background: linear-gradient(90deg, #d84315 0%, #ff6b35 100%);
+      box-shadow: 0 6px 24px rgba(255, 107, 53, 0.18);
+      transform: translateY(-2px) scale(1.04);
+    }
+    
+    /* Animation for status update notification */
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+  </style>
+
+</head>
+<body>
+  <header class="navbar">
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo">
+            </a>
+        </div>
+        <div class="search-bar">
+      <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+      <input type="text" id="searchInput" placeholder="Search for products..." onkeypress="if(event.key==='Enter') performSearch()" />
+      <button class="search-btn" onclick="performSearch()">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <a id="homeBtn" href="index.html" class="nav-link-button">Back to Shopping</a>
+  <div class="account-menu" id="accountMenu">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="order-history.html">Order History</a>
+          <a href="address-details.html">Address Book</a>
+          <a href="user-settings.html">User Settings</a>
+          <button type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+    </header>
+
+  <div class="orders-container">
+  <div class="page-header" style="max-width:700px;margin:2.5rem auto 0 auto;">
+      <h1>My Order History</h1>
+      <p>Track all your orders and their status</p>
+      <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+        <button id="deleteHistoryBtn" class="delete-history-btn">Delete Order History</button>
+      </div>
+      <div style="margin-top:2rem; display:flex; justify-content:center;">
+        <input id="orderSearchInput" type="text" placeholder="Search by product name, status, or date/month..." style="width:60%; padding:0.7rem 1.2rem; border-radius:8px; border:1px solid #ccc; font-size:1rem;">
+      </div>
+      <br>
+    </div>
+
+    <div id="ordersContent">
+      <div class="loading-spinner">Loading your orders...</div>
+    </div>
+
+    <!-- Modal for order details -->
+    <div id="orderDetailsModal" class="order-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.35); z-index:9999; justify-content:center; align-items:center;">
+      <div class="order-modal-content" style="background:#fff; border-radius:16px; max-width:500px; width:90%; padding:2rem; position:relative; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <button id="closeOrderModal" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        <div id="orderModalBody"></div>
+      </div>
+    </div>
+
+  <script src="backend-integration.js"></script>
+  <script>
+    // Delete order history logic
+    document.addEventListener('DOMContentLoaded', function() {
+      const deleteBtn = document.getElementById('deleteHistoryBtn');
+      if (deleteBtn) {
+        deleteBtn.onclick = async function() {
+          if (confirm('Are you sure you want to delete your entire order history? This cannot be undone.')) {
+            // TODO: Call backend API to delete all orders for current user
+            const user = getCurrentUser();
+            if (!user) return notifyError('Please login first');
+            try {
+              // Example: await API.apiDeleteOrderHistory(user.username);
+              notifySuccess('Order history deleted!');
+              // Refresh page to show empty state
+              await loadOrders();
+            } catch (err) {
+              notifyError('Failed to delete order history.');
+            }
+          }
+        };
+      }
+    });
+    
+    let highlightOrderId = null;
+
+    // Check if user just placed an order
+    if (localStorage.getItem('lastOrderId')) {
+      highlightOrderId = localStorage.getItem('lastOrderId');
+      localStorage.removeItem('lastOrderId');
+    }
+
+    // Old loadOrders function removed - see new implementation below with auto-refresh support
+
+    let allOrders = [];
+    let allOrderItems = {};
+
+    async function displayOrders(orders) {
+      console.log('[INFO] displayOrders called with:', orders);
+      allOrders = orders || [];
+      const container = document.getElementById('ordersContent');
+
+      if (!orders || orders.length === 0) {
+        container.innerHTML = `
+          <div class="no-orders">
+            <div style="font-size: 4rem; margin-bottom: 1rem;"></div>
+            <h2>No Orders Yet</h2>
+            <p>Start shopping to see your orders here!</p>
+            <a href="customer.html" class="btn-view-details" style="margin-top: 1rem; display: inline-block;">Start Shopping</a>
+          </div>
+        `;
+        return;
+      }
+
+      console.log('[INFO] Rendering', orders.length, 'orders with items loading in parallel');
+      
+      // Render orders immediately with loading placeholder
+      let ordersHTML = '';
+      for (const entry of orders) {
+        const order = entry.order;
+        const user = entry.user;
+        ordersHTML += createOrderCard({ ...order, user }, []);
+      }
+      container.innerHTML = ordersHTML;
+      
+      // Load all order items in parallel and update cards as they arrive
+      orders.forEach(async (entry) => {
+        const order = entry.order;
+        const user = entry.user;
+        const detailsResult = await apiGetOrderDetails(order.id);
+        
+        if (detailsResult.success) {
+          const { items } = detailsResult.data;
+          allOrderItems[order.id] = items;
+          
+          // Find and update the specific order card's items section
+          const orderCard = document.querySelector(`.order-card[data-order-id="${order.id}"]`);
+          if (orderCard) {
+            const itemsContainer = orderCard.querySelector('.order-items');
+            if (itemsContainer && items.length > 0) {
+              itemsContainer.innerHTML = items.map(item => `
+                <div class="order-item">
+                  <div class="item-details">
+                    <div class="item-name">${item.product.name}</div>
+                    <div class="item-meta">Quantity: ${item.quantity} × ₹${item.price.toFixed(2)}</div>
+                  </div>
+                  <div class="item-price">₹${(item.quantity * item.price).toFixed(2)}</div>
+                </div>
+              `).join('');
+            }
+          }
+        }
+      });
+
+      // Add click event to each order card for modal popup
+      document.querySelectorAll('.order-card').forEach(card => {
+        card.onclick = function(e) {
+          if (e.target.closest('button')) return;
+          const orderId = this.getAttribute('data-order-id');
+          showOrderDetailsModal(orderId);
+        };
+        card.style.cursor = 'pointer';
+      });
+    }
+
+    // Modal logic - Load items on demand when modal is opened
+    async function showOrderDetailsModal(orderId) {
+      const entry = allOrders.find(e => e.order.id == orderId);
+      if (!entry) return;
+      const order = entry.order;
+      const orderAddress = entry.orderAddress;
+      const modal = document.getElementById('orderDetailsModal');
+      const modalBody = document.getElementById('orderModalBody');
+      
+      // Show modal immediately with loading state
+      modal.style.display = 'flex';
+      modalBody.innerHTML = `
+        <h2 style="margin-bottom:0.5rem;">Order #${order.id}</h2>
+        <div style="text-align:center; padding:2rem; color:#888;">
+          <div style="font-size:1.2rem;">Loading order details...</div>
+        </div>
+      `;
+      
+      // Load items if not already cached
+      if (!allOrderItems[orderId]) {
+        const detailsResult = await apiGetOrderDetails(orderId);
+        if (detailsResult.success) {
+          allOrderItems[orderId] = detailsResult.data.items;
+        } else {
+          allOrderItems[orderId] = [];
+        }
+      }
+      
+      const items = allOrderItems[orderId] || [];
+      let itemsHTML = items.length > 0 ? items.map(item => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.7rem;">
+          <div>
+            <div style="font-weight:600; color:#333;">${item.product.name}</div>
+            <div style="font-size:0.95rem; color:#888;">Qty: ${item.quantity} × ₹${item.price.toFixed(2)}</div>
+          </div>
+          <div style="font-weight:bold; color:#ff6b35; font-size:1.1rem;">₹${(item.quantity * item.price).toFixed(2)}</div>
+        </div>
+      `).join('') : '<div style="color:#888;">No items found</div>';
+      // Get shipping address from orderAddress
+      let shippingAddress = '<span style="color:#999; font-style:italic;">Address not recorded for this order</span>';
+      if (orderAddress && (orderAddress.fullAddress || orderAddress.pincode || orderAddress.phone)) {
+        const addressParts = [];
+        if (orderAddress.fullAddress && orderAddress.fullAddress.trim()) {
+          addressParts.push(orderAddress.fullAddress);
+        }
+        if (orderAddress.pincode && orderAddress.pincode.trim()) {
+          addressParts.push(`Pincode: ${orderAddress.pincode}`);
+        }
+        if (orderAddress.phone && orderAddress.phone.trim()) {
+          addressParts.push(`Phone: ${orderAddress.phone}`);
+        }
+        if (addressParts.length > 0) {
+          shippingAddress = addressParts.join('<br>');
+        }
+      }
+      modalBody.innerHTML = `
+        <h2 style="margin-bottom:0.5rem;">Order #${order.id}</h2>
+        <div style="margin-bottom:0.5rem; color:#666;">Placed: ${new Date(order.createdAt).toLocaleString()}</div>
+        <div style="margin-bottom:0.5rem;">Status: <span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></div>
+        <div style="margin-bottom:1rem;">Total: <span style="color:#ff6b35; font-weight:bold;">₹${order.totalAmount.toFixed(2)}</span></div>
+        <div style="margin-bottom:1rem; border-bottom:1px solid #eee; padding-bottom:1rem;">${itemsHTML}</div>
+        <div style="font-size:0.98rem; color:#888;">Shipping Address:<br><span style="color:#333;">${shippingAddress}</span></div>
+      `;
+      modal.style.display = 'flex';
+    }
+    document.getElementById('closeOrderModal').onclick = function() {
+      document.getElementById('orderDetailsModal').style.display = 'none';
+    };
+    window.onclick = function(event) {
+      const modal = document.getElementById('orderDetailsModal');
+      if (event.target === modal) modal.style.display = 'none';
+    };
+
+    // Search/filter logic
+    document.getElementById('orderSearchInput').addEventListener('input', function() {
+      const term = this.value.trim().toLowerCase();
+      let filtered = allOrders.filter(entry => {
+        const order = entry.order;
+        // Only match product names, display status, date/month
+        const dateObj = new Date(order.createdAt);
+        const dateStr = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }).toLowerCase();
+        const monthStr = dateObj.toLocaleDateString('en-US', { month: 'long' }).toLowerCase();
+        let statusDisplay = '';
+        switch (String(order.status).toLowerCase()) {
+          case 'placed': statusDisplay = 'pending'; break;
+          case 'confirmed': statusDisplay = 'confirmed'; break;
+          case 'delivered': statusDisplay = 'delivered'; break;
+          case 'cancelled': statusDisplay = 'cancelled'; break;
+          default: statusDisplay = String(order.status).toLowerCase();
+        }
+        const items = (allOrderItems[order.id] || []).map(i => i.product.name.toLowerCase()).join(' ');
+        return dateStr.includes(term)
+          || monthStr.includes(term)
+          || statusDisplay.includes(term)
+          || items.includes(term);
+      });
+      // Render filtered orders using cached items
+      const container = document.getElementById('ordersContent');
+      if (!filtered.length) {
+        container.innerHTML = `<div class="no-orders"><h2>No matching orders found</h2></div>`;
+        return;
+      }
+      let ordersHTML = '';
+      for (const entry of filtered) {
+        const order = entry.order;
+        const user = entry.user;
+        ordersHTML += createOrderCard({ ...order, user }, allOrderItems[order.id] || []);
+      }
+      container.innerHTML = ordersHTML;
+      document.querySelectorAll('.order-card').forEach(card => {
+        card.onclick = function(e) {
+          if (e.target.closest('button')) return;
+          const orderId = this.getAttribute('data-order-id');
+          showOrderDetailsModal(orderId);
+        };
+        card.style.cursor = 'pointer';
+      });
+    });
+
+    function createOrderCard(order, items) {
+      const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const statusClass = `status-${order.status.toLowerCase()}`;
+
+      // Check if this is the newly placed order
+      const isNewOrder = highlightOrderId && order.id == highlightOrderId;
+      const highlightClass = isNewOrder ? 'new-order-highlight' : '';
+
+      // Show items if available, otherwise show loading placeholder
+      let itemsHTML = '';
+      if (items && items.length > 0) {
+        itemsHTML = items.map(item => `
+          <div class="order-item">
+            <div class="item-details">
+              <div class="item-name">${item.product.name}</div>
+              <div class="item-meta">Quantity: ${item.quantity} × ₹${item.price.toFixed(2)}</div>
+            </div>
+            <div class="item-price">₹${(item.quantity * item.price).toFixed(2)}</div>
+          </div>
+        `).join('');
+      } else {
+        itemsHTML = '<div class="order-item" style="text-align:center; color:#888; font-style:italic;">Loading items...</div>';
+      }
+
+      // Status badge UI
+      let statusBadge = '';
+      switch (order.status) {
+        case 'PLACED':
+          statusBadge = '<span class="order-status status-placed">Pending</span>';
+          break;
+        case 'CONFIRMED':
+          statusBadge = '<span class="order-status status-confirmed">Confirmed</span>';
+          break;
+        case 'DELIVERED':
+          statusBadge = '<span class="order-status status-delivered">Delivered</span>';
+          break;
+        case 'CANCELLED':
+          statusBadge = '<span class="order-status status-cancelled">Cancelled</span>';
+          break;
+        default:
+          statusBadge = `<span class="order-status">${order.status}</span>`;
+      }
+
+      return `
+        <div class="order-card ${highlightClass}" data-order-id="${order.id}">
+          <div class="order-header">
+            <div>
+              <div class="order-id">Order #${order.id}</div>
+              <div class="order-date">${orderDate}</div>
+            </div>
+            ${statusBadge}
+          </div>
+          <div class="order-items">
+            ${itemsHTML}
+          </div>
+          <div class="order-footer">
+            <div class="order-total">
+              Total: <span>₹${order.totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleAccount() {
+      const dropdown = document.getElementById('accountDropdown');
+      dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function logout() {
+      window.QuickKartAPI.apiLogout();
+      window.location.href = 'login.html';
+    }
+
+    // --- Instant Product Search & Display ---
+    let allProducts = [];
+    let displayedProducts = [];
+
+    // Auto-refresh: Track order statuses and check for changes
+    let previousOrderStatuses = {};
+    let isRefreshing = false;
+    
+    function showStatusUpdateNotification(orderId, oldStatus, newStatus) {
+      const toast = document.createElement('div');
+      toast.style.position = 'fixed';
+      toast.style.top = '100px';
+      toast.style.right = '30px';
+      toast.style.background = '#4CAF50';
+      toast.style.color = 'white';
+      toast.style.padding = '1.2rem 2rem';
+      toast.style.borderRadius = '8px';
+      toast.style.fontSize = '1.1rem';
+      toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+      toast.style.zIndex = '99999';
+      toast.style.animation = 'slideInRight 0.3s ease';
+      toast.innerHTML = `<strong>Order #${orderId} Updated!</strong><br>Status changed to: <strong>${newStatus}</strong>`;
+      document.body.appendChild(toast);
+      
+      // Play notification sound
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+      } catch (err) {
+        console.log('Could not play notification sound:', err);
+      }
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 5000);
+    }
+    
+    async function updateSingleOrderCard(orderId, newStatus, orderEntry) {
+      // Find the order card in the DOM
+      const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+      if (!orderCard) return;
+      
+      // Update the status badge only (fast and lightweight)
+      const statusBadge = orderCard.querySelector('.order-status');
+      if (statusBadge) {
+        // Remove old status classes
+        statusBadge.className = 'order-status';
+        
+        // Add new status class and text
+        let statusClass = `status-${newStatus.toLowerCase()}`;
+        let statusText = newStatus;
+        
+        switch (newStatus) {
+          case 'PLACED':
+            statusText = 'Pending';
+            break;
+          case 'CONFIRMED':
+            statusText = 'Confirmed';
+            break;
+          case 'DELIVERED':
+            statusText = 'Delivered';
+            break;
+          case 'CANCELLED':
+            statusText = 'Cancelled';
+            break;
+        }
+        
+        statusBadge.classList.add(statusClass);
+        statusBadge.textContent = statusText;
+        
+        // Add a brief highlight animation
+        orderCard.style.transition = 'all 0.3s ease';
+        orderCard.style.boxShadow = '0 4px 20px rgba(76, 175, 80, 0.4)';
+        orderCard.style.transform = 'scale(1.02)';
+        
+        setTimeout(() => {
+          orderCard.style.boxShadow = '';
+          orderCard.style.transform = '';
+        }, 1000);
+      }
+      
+      // Update allOrders array to keep data in sync
+      const orderIndex = allOrders.findIndex(e => e.order.id === orderId);
+      if (orderIndex !== -1) {
+        allOrders[orderIndex].order.status = newStatus;
+      }
+    }
+    
+    async function checkForOrderUpdates() {
+      if (isRefreshing) return; // Prevent concurrent refreshes
+      
+      const user = getCurrentUser();
+      if (!user) return; // User not logged in
+      
+      const result = await apiGetOrders(user.username);
+      if (result.success && result.data) {
+        const orders = result.data;
+        
+        // Check each order for status changes
+        for (const entry of orders) {
+          const order = entry.order;
+          const orderId = order.id;
+          const currentStatus = order.status;
+          
+          if (previousOrderStatuses[orderId] && previousOrderStatuses[orderId] !== currentStatus) {
+            // Status changed! Update only this specific order card
+            console.log(`[INFO] Order #${orderId} status changed: ${previousOrderStatuses[orderId]} -> ${currentStatus}`);
+            showStatusUpdateNotification(orderId, previousOrderStatuses[orderId], currentStatus);
+            await updateSingleOrderCard(orderId, currentStatus, entry);
+          }
+          
+          previousOrderStatuses[orderId] = currentStatus;
+        }
+      }
+    }
+    
+    async function loadOrders() {
+      const user = getCurrentUser();
+      if (!user) {
+        notifyError('Please login first');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      console.log('[INFO] Loading orders for user:', user.username);
+      const result = await apiGetOrders(user.username);
+      console.log('[INFO] Orders result:', result);
+      
+      if (result.success) {
+        const orders = result.data || [];
+        console.log('[INFO] Orders data:', orders);
+        // Initialize previous statuses
+        for (const entry of orders) {
+          previousOrderStatuses[entry.order.id] = entry.order.status;
+        }
+        await displayOrders(orders);
+      } else {
+        notifyError(result.message || 'Failed to load orders');
+        document.getElementById('ordersContent').innerHTML = `
+          <div class="no-orders">
+            <h2>Failed to Load Orders</h2>
+            <p>${result.message || 'Unknown error'}</p>
+          </div>
+        `;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+      // Load orders for current user
+      await loadOrders();
+      
+      // Start auto-refresh polling (check every 5 seconds)
+      setInterval(checkForOrderUpdates, 5000);
+      
+      // Show My Account menu if user is logged in
+      const user = getCurrentUser && getCurrentUser();
+      if (user) {
+        document.getElementById('accountMenu').style.display = 'block';
+      } else {
+        document.getElementById('accountMenu').style.display = 'none';
+      }
+      // Restore search: redirect to products page
+      document.getElementById('searchInput').onkeypress = function(e) {
+        if (e.key === 'Enter') performSearch();
+      };
+      document.querySelector('.search-btn').onclick = performSearch;
+    });
+
+    // Restore search: redirect to products page
+    window.performSearch = function() {
+      const searchTerm = document.getElementById('searchInput').value.trim();
+      if (!searchTerm) {
+        API.notifyInfo('Type something to search for before we look it up.');
+        return;
+      }
+      const userRole = localStorage.getItem('userRole');
+      if (userRole === 'CUSTOMER') {
+        window.location.href = `customer.html?search=${encodeURIComponent(searchTerm)}`;
+      } else if (userRole === 'VENDOR') {
+        window.location.href = `vendor.html?search=${encodeURIComponent(searchTerm)}`;
+      } else {
+        API.notifyInfo('Login to search across our catalogue.');
+        window.location.href = 'login.html';
+      }
+    }
+    // Close dropdown when clicking outside
+    window.addEventListener('click', (event) => {
+      if (!event.target.matches('.account-menu button') && !event.target.closest('.account-dropdown')) {
+        const dropdown = document.getElementById('accountDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

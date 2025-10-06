@@ -1,0 +1,1569 @@
+  // Alias for compatibility with legacy code
+  window.loadVendorProductsFromBackend = loadVendorProducts;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+  <title>QuicKart - My Shop</title>
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+  <style>
+    /* Vendor-specific grid layout fix */
+    #productsGrid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+      gap: 2rem !important;
+      padding: 2rem !important;
+      margin: 0 auto !important;
+      max-width: 1400px !important;
+      justify-items: center !important;
+    }
+
+    #productsGrid .product-card {
+      width: 100% !important;
+      max-width: 350px !important;
+      height: auto !important;
+      min-height: 480px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+
+    .vendor-controls {
+      text-align: center;
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      /* push vendor controls below the fixed/large navbar */
+      margin-top: 1.8rem;
+    }
+
+    @media (max-width: 768px) {
+      #productsGrid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+      }
+    }
+  </style>
+  <style>
+    /* (Removed custom nav-buttons spacing styles) */
+  </style>
+  <style>
+    /* Out-of-stock visual highlight */
+    .product-card.out-of-stock {
+      border: 4px solid #F44336;
+      background: #fff6f6;
+      box-shadow: 0 4px 12px rgba(244,67,54,0.12);
+    }
+    /* Small helper for 'My Shop' active state */
+    .shop-active {
+      outline: 2px solid rgba(244,67,54,0.12);
+    }
+    /* Product action buttons layout */
+    .product-actions {
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      align-items:center;
+      margin-top:12px;
+      width:100%;
+    }
+    /* Ensure stock controls are centered and aligned with actions */
+    .stock-info {
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      align-items:center;
+      margin-top:22px;
+    }
+    .product-actions .edit-btn,
+    .product-actions .remove-btn {
+      padding:10px 20px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      border:none;
+      min-width:100px;
+      width: 100px;
+      height: 40px;
+      text-align:center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    .product-actions .edit-btn { background:#ff8c00;color:#fff; }
+    .product-actions .remove-btn { background:#d9534f;color:#fff; }
+    #addProductModal textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+      background: #fafafa;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+      height: 110px;
+      min-height: 110px;
+      max-height: 110px;
+      resize: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo"></a>
+    </div>
+    <div class="search-bar">
+  <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+  <input type="text" placeholder="Search my inventory..." />
+  <button class="search-btn">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-link-button"><a style="text-decoration: none;color: #F46303;" id="homeBtn" href="home.html">About</a></button>
+      <button id="shopBtn" style="display:none;">My Shop</button>
+      <button id="vendorNotificationsBtn" title="Notifications" style="position:relative;" onclick="openNotificationsModal()">Notifications <span id="notifBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:12px;padding:2px 6px;font-size:12px;position:absolute;right:-6px;top:-8px;">0</span></button>
+      <!-- Replace Login with My Account dropdown for vendors -->
+      <div class="account-menu" id="accountMenu" style="display: inline-block;">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown" style="display: none; flex-direction: column;">
+          <a href="vendor-orders.html">Order Management</a>
+          <a href="user-settings.html">User Settings</a>
+          <button type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <script src="backend-integration.js"></script>
+  <script>
+    // Search products by name, description, or category
+    function searchVendorProducts(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        // If search is empty, show category-filtered products
+        const params = new URLSearchParams(window.location.search);
+        let category = params.get('category');
+        if (category && category.toLowerCase() !== 'all') {
+          filterAndDisplayProducts(category);
+        } else {
+          displayVendorProducts(allProducts);
+        }
+        return;
+      }
+      // Filter products by search query
+      const filtered = allProducts.filter(p => {
+        return (
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.category && p.category.toLowerCase().includes(q))
+        );
+      });
+      displayVendorProducts(filtered);
+    }
+  const API = window.QuickKartAPI || {};
+  // globals used by order/notification polling
+  let notificationCheckInterval = null;
+  let lastOrderCount = 0;
+  // current vendor (populated after API is available)
+  let currentVendor = null;
+  // all products loaded from backend
+  let allProducts = [];
+  // edit mode helpers
+  let _editingProductId = null;
+  async function openNotificationsModal() {
+        if (!currentVendor || !currentVendor.id) return;
+
+        // Create modal skeleton immediately to prevent flicker
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+          <div class="modal-content">
+            <span class="close-btn" id="closeNotifModal">&times;</span>
+            <h2>Notifications</h2>
+            <div id="notifList" style="max-height:400px;overflow:auto;padding:8px;">
+              <p class="muted">Loading notifications…</p>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+
+        const list = modal.querySelector('#notifList');
+
+        // prodResults will be populated by async fetch below
+        const prodResults = {};
+
+        // Helper to render one entry; returns the wrapper so it can be updated later
+        function renderEntryImmediate(entry, productId = null) {
+          const it = entry.latest;
+          const itemWrapper = document.createElement('div');
+          itemWrapper.style.display = 'flex';
+          itemWrapper.style.gap = '12px';
+          itemWrapper.style.alignItems = 'center';
+          itemWrapper.style.borderBottom = '1px solid #eee';
+          itemWrapper.style.padding = '10px 8px';
+
+          const thumb = document.createElement('img');
+          thumb.style.width = '80px';
+          thumb.style.height = '60px';
+          thumb.style.objectFit = 'cover';
+          thumb.style.borderRadius = '6px';
+          thumb.src = 'https://placehold.co/80x60/cccccc/333333?text=Image';
+          itemWrapper.appendChild(thumb);
+
+          const body = document.createElement('div');
+          body.style.flex = '1';
+          body.innerHTML = `<div style="font-weight:700">${it.message}</div><div style="font-size:12px;color:#666">${new Date(it.createdAt).toLocaleString()}</div>`;
+
+          const action = document.createElement('div');
+          action.style.minWidth = '90px';
+          action.style.textAlign = 'right';
+
+          const removeBtn = document.createElement('button');
+          removeBtn.className = 'btn btn--ghost';
+          removeBtn.textContent = 'Dismiss';
+          removeBtn.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            await Promise.all(entry.ids.map(id => API.apiMarkNotificationRead(id)));
+            itemWrapper.remove();
+            await loadVendorNotifications();
+          });
+          action.appendChild(removeBtn);
+
+          itemWrapper.appendChild(body);
+          itemWrapper.appendChild(action);
+          list.appendChild(itemWrapper);
+
+          // If we have product details already, update thumbnail and auto-dismiss if restocked
+          if (productId && prodResults[productId]) {
+            const prod = prodResults[productId];
+            if (prod.imageUrl) thumb.src = prod.imageUrl;
+            if ((prod.stock || 0) > 0) {
+              Promise.all(entry.ids.map(id => API.apiMarkNotificationRead(id))).then(() => {
+                itemWrapper.remove();
+                loadVendorNotifications();
+              }).catch(() => {});
+            }
+          }
+
+          return itemWrapper;
+        }
+
+        // Show loading state while fetching fresh data
+        list.innerHTML = '<p class="muted">Loading notifications…</p>';
+
+        // Fetch fresh notifications & product details in background, then update the modal
+        (async () => {
+          try {
+            const res = await API.apiGetVendorNotifications(currentVendor.id);
+            if (!res || !res.success) {
+              list.innerHTML = '<p class="muted" style="color:#999;">No notifications available</p>';
+              return;
+            }
+            
+            // Only show UNREAD notifications (filter out readFlag === true)
+            const allItems = res.data || [];
+            const items = allItems.filter(i => !i.readFlag);
+            window._vendorNotifications = items;
+
+            // Update numeric unread badge (including stock notifications)
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+              const unread = items.length + stockZeroNotifications.length;
+              if (unread > 0) {
+                badge.style.display = 'inline-block';
+                badge.textContent = unread;
+              } else {
+                badge.style.display = 'none';
+              }
+            }
+
+            // If no unread notifications (backend + stock), show empty state
+            if (items.length === 0 && stockZeroNotifications.length === 0) {
+              list.innerHTML = '<p class="muted" style="color:#999;">No new notifications</p>';
+              return;
+            }
+
+            // Re-group based on fresh UNREAD items only
+            const freshGroups = new Map();
+            const freshSingles = [];
+            const freshProductIds = new Set();
+            for (const it of items) {
+              let referencedProductId = null;
+              try {
+                const m = (it.message || '').match(/ID:\s*(\d+)/i);
+                if (m && m[1]) referencedProductId = Number(m[1]);
+              } catch (e) { }
+
+              if (referencedProductId) {
+                freshProductIds.add(referencedProductId);
+                if (!freshGroups.has(referencedProductId)) freshGroups.set(referencedProductId, { ids: [], latest: it });
+                const g = freshGroups.get(referencedProductId);
+                g.ids.push(it.id);
+                if (new Date(it.createdAt) > new Date(g.latest.createdAt)) g.latest = it;
+              } else {
+                freshSingles.push({ ids: [it.id], latest: it });
+              }
+            }
+
+            // Batch fetch product details for fresh productIds
+            const prodIdList = Array.from(freshProductIds);
+            if (prodIdList.length > 0) {
+              try {
+                const promises = prodIdList.map(id => API.apiGetProductById(id).then(r => ({ id, r })).catch(e => ({ id, r: null })));
+                const results = await Promise.all(promises);
+                results.forEach(x => { if (x && x.r && x.r.success) prodResults[x.id] = x.r.data; });
+              } catch (e) { /* ignore */ }
+            }
+
+            // Clear and render fresh entries
+            list.innerHTML = '';
+            
+            // Render stock notifications first
+            stockZeroNotifications.forEach(stockNotif => {
+              const itemWrapper = document.createElement('div');
+              itemWrapper.style.display = 'flex';
+              itemWrapper.style.gap = '12px';
+              itemWrapper.style.alignItems = 'center';
+              itemWrapper.style.borderLeft = '3px solid #ff6b35';
+              itemWrapper.style.borderBottom = '1px solid #eee';
+              itemWrapper.style.padding = '10px 8px';
+              itemWrapper.style.paddingLeft = '15px';
+              itemWrapper.style.backgroundColor = '#fff8f5';
+
+              const thumb = document.createElement('img');
+              thumb.style.width = '80px';
+              thumb.style.height = '60px';
+              thumb.style.objectFit = 'cover';
+              thumb.style.borderRadius = '6px';
+              thumb.src = stockNotif.productImage || 'https://placehold.co/80x60/cccccc/333333?text=Image';
+              itemWrapper.appendChild(thumb);
+
+              const body = document.createElement('div');
+              body.style.flex = '1';
+              body.innerHTML = `<div style="font-weight:700;color:#ff6b35;"> ${stockNotif.message}</div><div style="font-size:12px;color:#666">${new Date(stockNotif.createdAt).toLocaleString()}</div>`;
+
+              const action = document.createElement('div');
+              action.style.minWidth = '90px';
+              action.style.textAlign = 'right';
+
+              const removeBtn = document.createElement('button');
+              removeBtn.className = 'btn btn--ghost';
+              removeBtn.textContent = 'Dismiss';
+              removeBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const index = stockZeroNotifications.findIndex(n => n.id === stockNotif.id);
+                if (index !== -1) {
+                  stockZeroNotifications.splice(index, 1);
+                }
+                itemWrapper.remove();
+                updateNotificationBadge();
+              });
+              action.appendChild(removeBtn);
+
+              itemWrapper.appendChild(body);
+              itemWrapper.appendChild(action);
+              list.appendChild(itemWrapper);
+            });
+            
+            // Then render backend notifications
+            for (const [productId, entry] of freshGroups.entries()) renderEntryImmediate(entry, productId);
+            for (const entry of freshSingles) renderEntryImmediate(entry, null);
+          } catch (e) {
+            // Keep the cached view if fresh fetch fails
+            console.warn('Failed to refresh notifications in background', e);
+          }
+        })();
+
+  // Close handler
+  document.getElementById('closeNotifModal').addEventListener('click', () => modal.remove());
+        // Attach handler to the My Shop / Cart button if present
+        const shopBtnEl = document.getElementById('shopBtn') || document.getElementById('cartBtn');
+        if (shopBtnEl) {
+          shopBtnEl.textContent = 'My Shop';
+          shopBtnEl.disabled = false;
+          // ensure clicking it navigates to vendor page when on other pages
+          shopBtnEl.onclick = () => { window.location.href = 'vendor.html'; };
+          shopBtnEl.addEventListener('click', () => showMyShopSorted());
+        }
+      // Setup notifications button handlers and out-of-stock indicator
+      const notifBtn = document.getElementById('vendorNotificationsBtn');
+      if (notifBtn) {
+        notifBtn.style.display = 'inline-block';
+      }
+
+      // Load both notifications and out-of-stock indicator on page load
+        await Promise.all([loadVendorNotifications()]);
+      }
+
+    </script>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main>
+    <div class="vendor-controls">
+      <button class="add-product-btn" onclick="openAddProductModal()">Add Product</button>
+    </div>
+
+    <!-- Category Navigation -->
+    <div class="category-nav" style="margin: 1rem auto; max-width: 1200px; text-align: center;">
+      <button class="category-btn" onclick="filterByCategory('all')" id="btn-all">All Products</button>
+      <button class="category-btn" onclick="filterByCategory('Fashion')" id="btn-fashion">Fashion</button>
+      <button class="category-btn" onclick="filterByCategory('Electronics')" id="btn-electronics">Electronics</button>
+      <button class="category-btn" onclick="filterByCategory('Stationery')" id="btn-stationery">Stationery</button>
+      <button class="category-btn" onclick="filterByCategory('Snacks')" id="btn-snacks">Snacks</button>
+      <button class="category-btn" onclick="filterByCategory('Other')" id="btn-other">Other</button>
+    </div>
+
+    <!-- Products Grid -->
+  <div id="productsGrid" class="products-grid animated"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <h3>No products available</h3>
+      <p>Try adding a product to your shop or refresh the page.</p>
+    </div>
+    <!-- Add/Edit Product Modal -->
+  <div id="addProductModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeAddProduct()">&times;</span>
+      <h2 id="addProductTitle">Add Product</h2>
+      <form id="addProductForm" onsubmit="event.preventDefault(); addProduct();">
+        <!-- Product Basic Info -->
+        <div class="form-section">
+          <label for="productName">Product Name <span class="required">*</span></label>
+          <input type="text" id="productName" placeholder="Enter product name" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-section">
+            <label for="productPrice">Price (₹) <span class="required">*</span></label>
+            <input type="number" id="productPrice" placeholder="0.00" required min="0" step="0.01">
+          </div>
+          <div class="form-section">
+            <label for="productStock">Stock Quantity <span class="required">*</span></label>
+            <input type="number" id="productStock" placeholder="0" required min="0">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label for="productCategory">Category <span class="required">*</span></label>
+          <select id="productCategory" required>
+            <option value="">-- Select Category --</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Stationery">Stationery</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-section" style="resize: none;">
+          <label for="productDescription">Description</label>
+          <textarea id="productDescription" rows="3" placeholder="Describe your product..."></textarea>
+        </div>
+
+        <div class="form-section">
+          <label for="productImage">Product Image</label>
+          <div id="productImagePreviewContainer"></div>
+          <input type="file" id="productImage" accept="image/*">
+        </div>
+
+        <button type="submit" class="save-btn">Save Product</button>
+      </form>
+    </div>
+
+    <style>
+      /* Modal Overlay */
+      #addProductModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  padding: 2vh 0; /* Add vertical padding so modal never touches top/bottom */
+      }
+
+      /* Modal Content */
+      #addProductModal .modal-content {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 580px;
+  width: 92%;
+  max-height: 86vh;
+  margin: 0 auto;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: slideDown 0.3s ease-out;
+  padding: 1.2rem 2rem 2rem 2rem;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Custom Scrollbar */
+      #addProductModal .modal-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      #addProductModal .modal-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      #addProductModal .modal-content::-webkit-scrollbar-thumb {
+        background: #ff8c00;
+        border-radius: 10px;
+      }
+      #addProductModal .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #ff6f61;
+      }
+
+      /* Close Button */
+      #addProductModal .close-btn {
+        position: sticky;
+        top: 0;
+        float: right;
+        font-size: 32px;
+        color: #999;
+        cursor: pointer;
+        background: white;
+        border: none;
+        padding: 8px 16px;
+        margin: 8px;
+        line-height: 1;
+        transition: color 0.2s;
+        z-index: 1;
+      }
+      #addProductModal .close-btn:hover {
+        color: #ff6f61;
+      }
+
+      /* Title */
+      #addProductModal h2 {
+        text-align: center;
+        color: #ff8c00;
+        margin: 0 0 24px 0;
+        padding: 20px 24px 0;
+        font-size: 24px;
+        font-weight: 600;
+        clear: both;
+      }
+
+      /* Form */
+      #addProductModal form {
+        padding: 0 24px 24px;
+      }
+
+      /* Form Sections */
+      #addProductModal .form-section {
+        margin-bottom: 20px;
+      }
+
+      /* Form Row (for side-by-side fields) */
+      #addProductModal .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      /* Labels */
+      #addProductModal label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      #addProductModal .required {
+        color: #ff6f61;
+      }
+
+      /* Input Fields */
+      #addProductModal input,
+      #addProductModal select,
+      #addProductModal textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        box-sizing: border-box;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+      }
+
+      #addProductModal input:focus,
+      #addProductModal select:focus,
+      #addProductModal textarea:focus {
+        outline: none;
+        border-color: #ff8c00;
+        box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+      }
+
+      #addProductModal textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      #addProductModal select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 20px;
+        padding-right: 40px;
+      }
+
+      /* Image Preview */
+      #addProductModal #productImagePreviewContainer {
+        text-align: center;
+        margin-bottom: 12px;
+        min-height: 120px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #e0e0e0;
+      }
+
+      #addProductModal #productImagePreviewContainer img {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+      }
+
+      #addProductModal input[type="file"] {
+        padding: 8px;
+        border: none;
+        background: transparent;
+      }
+
+      /* Save Button */
+      #addProductModal .save-btn {
+        width: 100%;
+        background: #f46303;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 24px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+        box-shadow: 0 4px 12px rgba(244, 99, 3, 0.3);
+      }
+
+      #addProductModal .save-btn:hover {
+        background: #d45502;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(244, 99, 3, 0.4);
+      }
+
+      #addProductModal .save-btn:active {
+        transform: translateY(0);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        #addProductModal .modal-content {
+          width: 96%;
+          max-height: 95vh;
+        }
+
+        #addProductModal .form-row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+
+        #addProductModal h2 {
+          font-size: 20px;
+        }
+      }
+    </style>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Load vendor products from backend API - FILTERED BY PINCODE
+    async function loadVendorProducts() {
+  let result;
+  const currentUser = API.getCurrentUser ? API.getCurrentUser() : null;
+  let vendorPincode = (currentUser && currentUser.pincode) ? currentUser.pincode : localStorage.getItem('userPincode');
+      if (currentVendor && currentVendor.id) {
+        result = await API.apiGetProductsByVendor(currentVendor.id);
+      } else {
+        result = await API.apiGetProducts(vendorPincode || null, null);
+      }
+      API.showLoading(false);
+      if (result.success) {
+        allProducts = result.data;
+        API.log.success(`Vendor products loaded for pincode ${vendorPincode}:`, allProducts.length);
+        // Note: Products will be filtered/displayed by the DOMContentLoaded event handler
+      } else {
+        API.log.error('Failed to load products', result.error);
+        API.notifyError(`Failed to load your catalogue: ${result.error || 'Please try again shortly.'}`);
+      }
+    }
+
+    // Make loader globally available for legacy and Promise.all
+    window.loadVendorProductsFromBackend = loadVendorProducts;
+    document.addEventListener('DOMContentLoaded', function() {
+      loadVendorProducts();
+
+      // Listen for storage changes (cart updates) and reload products
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'cartUpdated') {
+          loadVendorProducts();
+        }
+      });
+    });
+    
+    function filterAndDisplayProducts(selectedCategory) {
+      let filteredProducts = allProducts;
+      if (selectedCategory && selectedCategory.toLowerCase() !== 'all') {
+        const normalizedCategory = selectedCategory.trim().toLowerCase();
+        filteredProducts = allProducts.filter(p => (p.category || '').trim().toLowerCase() === normalizedCategory);
+      }
+      displayVendorProducts(filteredProducts);
+    }
+
+    // Function to filter by category with button highlighting
+    function filterByCategory(category) {
+      // Update active button state
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      const btnId = 'btn-' + category.toLowerCase();
+      const activeBtn = document.getElementById(btnId);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+
+      // Filter and display products
+      if (category.toLowerCase() === 'all') {
+        displayVendorProducts(allProducts);
+      } else {
+        filterAndDisplayProducts(category);
+      }
+    }
+
+    function displayVendorProducts(products) {
+      const productsGrid = document.getElementById('productsGrid');
+      const emptyState = document.getElementById('emptyState');
+      
+      // Clear existing products first
+      if (productsGrid) productsGrid.innerHTML = '';
+      
+      if (!products || products.length === 0) {
+        if (productsGrid) productsGrid.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      } else {
+        if (productsGrid) productsGrid.style.display = 'grid';
+        if (emptyState) emptyState.style.display = 'none';
+      }
+
+      // Sort so out-of-stock products appear first (stable-ish)
+      const sortedProducts = [...products].sort((a, b) => {
+        const aOut = ((a.stock || 0) === 0) ? 0 : 1;
+        const bOut = ((b.stock || 0) === 0) ? 0 : 1;
+        if (aOut !== bOut) return aOut - bOut;
+        return 0; // keep original relative order for equal items
+      });
+
+      // Add products to grid (already cleared at start of function)
+      sortedProducts.forEach((product, index) => {
+        const safeId = product.id || index;
+        const safePrice = (typeof product.price === 'number') ? product.price.toFixed(2) : (product.price ? Number(product.price).toFixed(2) : '0.00');
+
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.id = `product-card-${safeId}`;
+        productCard.style.animationDelay = `${index * 0.1}s`;
+
+        // Highlight out-of-stock products
+        if ((product.stock || 0) === 0) {
+          productCard.classList.add('out-of-stock');
+        }
+    const stockInfo = `
+      <div class="stock-info">
+        Stock: <span id="stock-${safeId}">${product.stock || 0}</span>
+        <button onclick="decreaseStock(${safeId})">-</button>
+        <button onclick="increaseStock(${safeId})">+</button>
+      </div>`;
+
+    productCard.innerHTML = `
+      <img src="${product.imageUrl || 'https://placehold.co/280x200/cccccc/333333?text=No+Image'}" 
+           alt="${product.name}" 
+           onerror="this.src='https://placehold.co/280x200/cccccc/333333?text=Image+Missing'" />
+      <h3>${product.name}</h3>
+      <div class="price">Rs ${safePrice}</div>
+      <div class="description">${product.description || 'No description available'}</div>
+      ${stockInfo}
+      <div class="product-actions">
+        <div class="button-group">
+          <button class="edit-btn" onclick="openEditProduct(${safeId})">Edit</button>
+          <button class="remove-btn" onclick="removeProduct(${safeId})">Remove</button>
+        </div>
+      </div>
+    `;
+    productsGrid.appendChild(productCard);
+      });
+      
+      // Display state already set at beginning of function
+    }
+
+    // When vendor clicks 'My Shop', show out-of-stock products first (highlighted)
+    function showMyShopSorted() {
+      if (!allProducts) return;
+      // Stable-ish sort: out-of-stock (stock==0) first
+      const sorted = [...allProducts].sort((a, b) => {
+        const aOut = ((a.stock || 0) === 0) ? 0 : 1;
+        const bOut = ((b.stock || 0) === 0) ? 0 : 1;
+        return aOut - bOut;
+      });
+      displayVendorProducts(sorted);
+
+      // Quick visual feedback on the My Shop button
+      const shopBtn = document.getElementById('shopBtn') || document.getElementById('cartBtn');
+      if (shopBtn) {
+        shopBtn.classList.add('shop-active');
+        setTimeout(() => shopBtn.classList.remove('shop-active'), 900);
+      }
+    }
+
+    // ---------------- Notifications UI ----------------
+    async function loadVendorNotifications() {
+      if (!currentVendor || !currentVendor.id) return;
+      const badge = document.getElementById('notifBadge');
+      const result = await API.apiGetVendorNotifications(currentVendor.id);
+      if (!result.success) {
+        // On error, ensure we don't show stale counts
+        window._vendorNotifications = [];
+        if (badge) badge.style.display = 'none';
+        return;
+      }
+      const items = result.data || [];
+
+      // Only count unread notifications (backend + stock alerts)
+      const unread = items.filter(i => !i.readFlag).length + stockZeroNotifications.length;
+      if (badge) {
+        if (unread > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = unread;
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      // Store locally for modal rendering
+      window._vendorNotifications = items;
+    }
+
+    // Out-of-stock indicator and modal
+    async function loadVendorOutOfStockIndicator() {
+      if (!currentVendor || !currentVendor.id) return;
+      const res = await API.apiGetVendorOutOfStock(currentVendor.id);
+      if (!res.success) return;
+      const items = res.data || [];
+      const badge = document.getElementById('notifBadge');
+      if (badge) {
+        // show a small indicator on badge when out-of-stock products exist
+        if (items.length > 0) {
+          badge.style.display = 'inline-block';
+          // if badge already has a number keep it; otherwise show dot-like 1
+          if (!badge.textContent || Number(badge.textContent) === 0) badge.textContent = items.length;
+        } else {
+          if (badge && Number(badge.textContent) === 0) badge.style.display = 'none';
+        }
+      }
+      window._vendorOutOfStock = items;
+    }
+    // openNotificationsModal: implemented above (uses batch product fetch and renders a skeleton immediately)
+    
+    // --- Inventory Management with Backend API ---
+    
+    async function increaseStock(productId) {
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return;
+
+      const newStock = (product.stock || 0) + 1;
+      
+      API.showLoading(true);
+      const result = await API.apiUpdateProduct(productId, { stock: newStock });
+      API.showLoading(false);
+
+        if (result.success) {
+          product.stock = newStock;
+          const stockElement = document.getElementById(`stock-${product.id}`);
+          if (stockElement) stockElement.textContent = newStock;
+          // Remove out-of-stock highlight immediately when stock becomes > 0
+          const card = document.getElementById(`product-card-${product.id}`);
+          if (card && (newStock || 0) > 0) card.classList.remove('out-of-stock');
+          API.log.success('Stock increased', { productId, newStock });
+          // Refresh notification badge and out-of-stock indicator
+          try { await loadVendorNotifications(); } catch (e) { console.warn('Failed to reload notifications', e); }
+        } else {
+          API.notifyError(`Failed to update stock: ${result.error || 'Please try again later.'}`);
+        }
+    }
+
+    async function decreaseStock(productId) {
+      const product = allProducts.find(p => p.id === productId);
+      if (!product || (product.stock || 0) <= 0) return;
+
+      const newStock = product.stock - 1;
+      
+      API.showLoading(true);
+      const result = await API.apiUpdateProduct(productId, { stock: newStock });
+      API.showLoading(false);
+
+      if (result.success) {
+        const oldStock = product.stock;
+        product.stock = newStock;
+        const stockElement = document.getElementById(`stock-${product.id}`);
+        if (stockElement) stockElement.textContent = newStock;
+        
+        // If stock dropped to 0, add the out-of-stock highlight immediately
+        const card = document.getElementById(`product-card-${product.id}`);
+        if (card) {
+          if ((newStock || 0) === 0) {
+            card.classList.add('out-of-stock');
+            // Show immediate notification when manually decreased to 0
+            if (oldStock > 0 && newStock === 0) {
+              console.log('[STOCK ALERT] Stock reached 0 for:', product.name);
+              showStockZeroNotification(product);
+            }
+          } else {
+            card.classList.remove('out-of-stock');
+          }
+        }
+        API.log.success('Stock decreased', { productId, newStock });
+        
+        // Update previousStockLevels to avoid duplicate notification from polling
+        previousStockLevels[productId] = newStock;
+        // Refresh notification badge and out-of-stock indicator
+        try { await loadVendorNotifications(); } catch (e) { console.warn('Failed to reload notifications', e); }
+      } else {
+        API.notifyError(`Failed to update stock: ${result.error || 'Please try again later.'}`);
+      }
+    }
+
+    async function removeProduct(productId) {
+      const confirmed = await API.confirm({
+        title: 'Remove product?',
+        message: 'This product will be removed from your catalogue immediately.',
+        confirmText: 'Remove product',
+        cancelText: 'Keep it',
+        tone: 'warning'
+      });
+
+      if (!confirmed) return;
+
+      API.showLoading(true);
+      const result = await API.apiDeleteProduct(productId);
+      API.showLoading(false);
+
+      if (result.success) {
+        API.notifySuccess('Product removed from your shop.', { title: 'Catalogue updated', duration: 2200 });
+        await loadVendorProductsFromBackend(); // Reload products
+      } else {
+        API.notifyError(`Failed to remove product: ${result.error || 'Please try again later.'}`);
+      }
+    }
+    
+    // --- Utility Validation Function (MODIFIED FOR BETTER ACCURACY) ---
+    function validateFields(fieldIds) {
+        let isValid = true;
+        
+        fieldIds.forEach(id => {
+            const field = document.getElementById(id);
+            if (!field) return;
+
+            let fieldValue = field.value.trim();
+            let isFieldValid = true;
+
+            if (field.type === 'file') {
+                if (field.files.length === 0) {
+                    isFieldValid = false;
+                }
+            } else if (fieldValue === '') {
+                isFieldValid = false;
+            } else if (field.type === 'number') {
+                // Ensure number fields are non-negative and actually numeric
+                if (isNaN(parseFloat(fieldValue)) || parseFloat(fieldValue) < 0) {
+                    isFieldValid = false;
+                }
+            } else if (field.tagName === 'SELECT' && fieldValue === '') {
+                isFieldValid = false;
+            }
+
+            if (!isFieldValid) {
+                field.style.border = '2px solid red';
+                isValid = false;
+            } else {
+                field.style.border = '1px solid #ccc';
+            }
+        });
+
+        return isValid;
+    }
+
+    // --- Image Compression Function ---
+    function compressImage(file, maxWidth, maxHeight, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            // Calculate new dimensions
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+            
+            // Create canvas and compress
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to base64 with compression
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedBase64);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // --- Add Product Modal Functions ---
+    function openAddProductModal() {
+  _editingProductId = null;
+  document.getElementById('addProductModal').style.display = 'block';
+  document.getElementById('addProductTitle').textContent = `Add New Product to ${currentVendor.username}'s Shop`;
+    }
+
+    // Open modal in edit mode for a specific product id
+    async function openEditProduct(productId) {
+      // Debug log for productId
+      console.log('[EditProduct] Requested productId:', productId, typeof productId);
+      let product = null;
+      try {
+        if (window.allProducts && Array.isArray(window.allProducts)) {
+          product = window.allProducts.find(p => String(p.id) === String(productId) || p.id == productId);
+        }
+      } catch (e) { console.warn('Error searching allProducts:', e); }
+
+      // Fallback: fetch from API if not found locally
+      if (!product) {
+        try {
+          const res = await API.apiGetProductById(productId);
+          console.log('[EditProduct] API response:', res);
+          if (res && res.success) product = res.data;
+        } catch (e) { console.warn('API error:', e); }
+      }
+
+      if (!product) {
+        if (API && typeof API.notifyError === 'function') API.notifyError('Product not found for editing.');
+        console.error('[EditProduct] Product not found for editing. productId:', productId);
+        return;
+      }
+
+      _editingProductId = productId;
+      const modalEl = document.getElementById('addProductModal');
+      if (!modalEl) {
+        if (API && typeof API.notifyError === 'function') API.notifyError('Edit modal not available.');
+        return;
+      }
+      modalEl.style.display = 'block';
+  const titleEl = document.getElementById('addProductTitle');
+  if (titleEl) titleEl.textContent = `Edit Product: ${product.name}`;
+
+      const nameEl = document.getElementById('productName'); if (nameEl) nameEl.value = product.name || '';
+      const priceEl = document.getElementById('productPrice'); if (priceEl) priceEl.value = product.price || '';
+      // file input cannot be set for security reasons; leave it empty so user can upload new image if desired
+      const descEl = document.getElementById('productDescription'); if (descEl) descEl.value = product.description || '';
+      const stockEl = document.getElementById('productStock'); if (stockEl) stockEl.value = (product.stock != null) ? product.stock : '';
+      const catEl = document.getElementById('productCategory'); if (catEl) catEl.value = product.category || '';
+      // Show image preview
+      const previewContainer = document.getElementById('productImagePreviewContainer');
+      if (previewContainer) {
+        if (product.imageUrl) {
+          previewContainer.innerHTML = `<img src="${product.imageUrl}" alt="Product Image" style="max-width:120px;max-height:90px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:6px;">`;
+        } else {
+          previewContainer.innerHTML = '';
+        }
+      }
+    }
+
+    function closeAddProduct() {
+  document.getElementById('addProductModal').style.display = 'none';
+      // Clear form
+      _editingProductId = null;
+      document.getElementById('productName').value = '';
+      document.getElementById('productPrice').value = '';
+      // Note: file inputs can't be set programmatically for security; leave productImage as-is
+      document.getElementById('productImage').value = '';
+      document.getElementById('productDescription').value = '';
+      document.getElementById('productStock').value = '';
+      document.getElementById('productCategory').value = '';
+      
+      // Clear validation styling
+      document.querySelectorAll('#addProductModal input, #addProductModal select, #addProductModal textarea').forEach(field => {
+          field.style.border = '1px solid #ccc';
+      });
+    }
+
+    async function addProduct() {
+      console.log('=== ADD PRODUCT STARTED ===');
+      
+      const name = document.getElementById('productName').value.trim();
+      const price = document.getElementById('productPrice').value.trim();
+      const description = document.getElementById('productDescription').value.trim();
+      const stock = document.getElementById('productStock').value.trim();
+      const category = document.getElementById('productCategory').value;
+      const file = document.getElementById('productImage').files[0];
+
+      console.log('Form values:', { name, price, stock, category, description, hasFile: !!file });
+
+      // Validate required fields
+      if (!name || !price || !stock || !category) {
+        console.warn('Validation failed - missing required fields');
+        API.notifyWarning('Please fill in all required fields (Name, Price, Stock, Category).');
+        return;
+      }
+
+      // Validate image
+      if (!file) {
+        console.warn('No image file selected');
+        API.notifyWarning('Please select an image file.');
+        return;
+      }
+
+      // Check file size (max 2MB)
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        console.warn('File too large:', file.size, 'bytes');
+        API.notifyWarning('Image file is too large. Please use an image smaller than 2MB.');
+        return;
+      }
+
+      // Get current user to verify vendor info
+      const currentUser = API.getCurrentUser();
+      console.log('Current User:', currentUser);
+      
+      if (!currentUser || !currentUser.pincode) {
+        console.error('User pincode missing!');
+        API.notifyError('Your pincode is missing. Please logout and login again.');
+        return;
+      }
+
+      // Compress and convert image to base64
+      let imageUrl;
+      console.log('Processing image file:', file.name, 'Size:', file.size, 'bytes');
+      
+      try {
+        // Compress image before converting to base64
+        const compressedImage = await compressImage(file, 800, 600, 0.7);
+        console.log('✅ Image compressed. Original:', file.size, 'Compressed:', compressedImage.length, 'bytes');
+        imageUrl = compressedImage;
+      } catch (error) {
+        console.error('Failed to process image:', error);
+        API.notifyError('Failed to process image. Please try a different image file.');
+        return;
+      }
+
+      // Create product data for backend
+      const productData = {
+        name: name,
+        price: parseFloat(price),
+        imageUrl: imageUrl, // Contains either base64 data or URL
+        description: description,
+        category: category,
+        stock: parseInt(stock),
+        vendor: { id: currentUser.id }
+      };
+
+      console.log('Product data before sending (imageUrl length):', {
+        ...productData,
+        imageUrl: imageUrl.substring(0, 50) + '...'
+      });
+
+      // Validate
+      if (isNaN(productData.price) || productData.price <= 0) {
+        console.warn('Invalid price:', price);
+        API.notifyWarning('Please enter a valid price greater than zero.');
+        return;
+      }
+
+      if (isNaN(productData.stock) || productData.stock < 0) {
+        console.warn('Invalid stock:', stock);
+        API.notifyWarning('Please enter a valid stock quantity.');
+        return;
+      }
+
+      console.log('Calling API to add/update product...');
+      API.showLoading(true);
+      let result;
+      if (_editingProductId) {
+        // Update flow (assumes API.apiUpdateProduct supports partial updates)
+        result = await API.apiUpdateProduct(_editingProductId, productData);
+      } else {
+        result = await API.apiAddProduct(productData);
+      }
+      API.showLoading(false);
+
+      console.log('API Response:', result);
+
+      if (result.success) {
+        if (_editingProductId) console.log(' Product updated successfully!', result.data);
+        else console.log(' Product added successfully!', result.data);
+        closeAddProduct();
+        API.notifySuccess(_editingProductId ? 'Product updated successfully!' : 'Product added successfully!', { title: 'Product Live', duration: 3000 });
+        await loadVendorProductsFromBackend(); // Reload products
+      } else {
+        console.error(' Failed to add/update product:', result.error);
+        API.notifyError(`Failed to add/update product: ${result.error || 'Please try again later.'}`);
+      }
+      
+      console.log('=== ADD PRODUCT ENDED ===');
+    }
+
+    // --- Account/Logout Functions ---
+    function logout() {
+      // Clear user session data
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userPincode');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userToken');
+      // Optionally clear all localStorage (uncomment if needed)
+      // localStorage.clear();
+      // Redirect to login page
+      window.location.href = 'login.html';
+    }
+    function toggleAccount() {
+      const dropdown = document.getElementById("accountDropdown");
+      dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+    }
+    
+    // openNotificationsModal: primary implementation is above; duplicates removed.
+
+  // Initialize periodic order notifications for vendors
+  async function initOrderNotifications() {
+    const user = API.getCurrentUser();
+    if (!user || !user.username) {
+      console.log('Order notifications disabled (not a vendor)');
+      return;
+    }
+
+    try {
+      const res = await API.apiGetVendorOrders(user.username);
+      if (res && res.success) {
+        const ordersMap = new Map();
+        res.data.forEach(item => {
+          if (item && item.order && !ordersMap.has(item.order.id)) {
+            ordersMap.set(item.order.id, item.order);
+          }
+        });
+        lastOrderCount = ordersMap.size;
+        console.log('📊 Initial order count:', lastOrderCount);
+      }
+    } catch (err) {
+      console.warn('Failed to initialize order notifications', err);
+    }
+
+    // Start periodic check every 15 seconds
+    if (notificationCheckInterval) clearInterval(notificationCheckInterval);
+    notificationCheckInterval = setInterval(checkForNewOrders, 30000);
+  }
+
+    async function checkForNewOrders() {
+        const user = API.getCurrentUser();
+        if (!user) return;
+
+        const result = await API.apiGetVendorOrders(user.username);
+        
+        if (result.success) {
+            const ordersMap = new Map();
+            let latestNewOrder = null;
+            
+            result.data.forEach(item => {
+                if (!ordersMap.has(item.order.id)) {
+                    ordersMap.set(item.order.id, item.order);
+                    if (item.order.status === 'PLACED' && (!latestNewOrder || new Date(item.order.createdAt) > new Date(latestNewOrder.createdAt))) {
+                        latestNewOrder = item.order;
+                    }
+                }
+            });
+
+            const currentOrderCount = ordersMap.size;
+
+            if (currentOrderCount > lastOrderCount) {
+                const newOrdersCount = currentOrderCount - lastOrderCount;
+                console.log('🎉 NEW ORDER DETECTED! Previous:', lastOrderCount, 'Current:', currentOrderCount);
+                
+                // Show notification
+                showOrderNotificationPopup(latestNewOrder, newOrdersCount);
+                
+                // Play sound
+                playNotificationSound();
+                
+                lastOrderCount = currentOrderCount;
+            }
+        }
+    }
+
+    function showOrderNotificationPopup(order, count) {
+        const message = count > 1 
+            ? `You have ${count} new orders! Customers are ordering your products.`
+            : 'You have a new order! A customer just placed an order.';
+        
+        let details = '';
+        if (order) {
+            const orderDate = new Date(order.createdAt).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            details = `\nOrder #${order.id} | Customer: ${order.user.username} | Amount: ₹${order.totalAmount.toFixed(2)} | Time: ${orderDate}`;
+        }
+
+        API.notifySuccess(message + details, {
+            title: 'New Order Received!',
+            duration: 8000
+        });
+    }
+
+    function playNotificationSound() {
+        try {
+            // Create a simple beep using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800; // Frequency in Hz
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (err) {
+            console.log('Could not play notification sound:', err);
+        }
+    }
+
+  // Initialize on page load
+  window.addEventListener('DOMContentLoaded', async () => {
+    // Attach search button handler
+    const searchInput = document.querySelector('.search-bar input');
+    const searchBtn = document.querySelector('.search-bar .search-btn');
+    if (searchBtn && searchInput) {
+      searchBtn.addEventListener('click', () => {
+        searchVendorProducts(searchInput.value);
+      });
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchVendorProducts(searchInput.value);
+      });
+    }
+    // Wait for QuickKartAPI to be available (short poll)
+    const start = Date.now();
+    while ((!window.QuickKartAPI || typeof window.QuickKartAPI.getCurrentUser !== 'function') && (Date.now() - start) < 2000) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+    // Prefer API from window if present
+    const WK = window.QuickKartAPI || API;
+    if (WK && typeof WK.getCurrentUser === 'function') {
+      currentVendor = WK.getCurrentUser();
+    } else if (API && typeof API.getCurrentUser === 'function') {
+      currentVendor = API.getCurrentUser();
+    }
+
+    try {
+      // Load vendor data and notifications concurrently
+      await Promise.all([
+        loadVendorProductsFromBackend(),
+        loadVendorNotifications()
+      ]);
+      // Check URL parameters for category or search
+      const params = new URLSearchParams(window.location.search);
+      let category = params.get('category');
+      const searchQuery = params.get('search');
+      
+      // Handle search query
+      if (searchQuery) {
+        const searchInput = document.querySelector('.search-bar input');
+        if (searchInput) searchInput.value = searchQuery;
+        searchVendorProducts(searchQuery);
+      } 
+      // Handle category from URL or default to 'all'
+      else {
+        if (category) {
+          category = category.replace(/\+/g, ' ').replace(/%20/g, ' ');
+          filterByCategory(category);
+        } else {
+          // Default to showing all products
+          filterByCategory('all');
+        }
+      }
+    } catch (e) {
+      console.warn('Initial vendor data load failed', e);
+    }
+
+    // Start order notification polling slightly later
+    setTimeout(initOrderNotifications, 1200);
+    
+    // Start stock monitoring for zero-stock notifications
+    startStockMonitoring();
+  });
+
+    // Stock monitoring to detect when products reach zero stock
+    let previousStockLevels = {};
+    let stockZeroNotifications = []; // Store stock zero notifications locally
+    
+    function startStockMonitoring() {
+      // Initialize current stock levels first
+      initializeStockLevels();
+      
+      // Check every 10 seconds for stock changes
+      setInterval(checkForStockUpdates, 10000);
+    }
+    
+    async function initializeStockLevels() {
+      if (!currentVendor) return;
+      
+      try {
+  const result = await API.apiGetProductsByVendor(currentVendor.id);
+        if (result.success && result.data) {
+          const products = result.data;
+          for (const product of products) {
+            previousStockLevels[product.id] = product.stock || 0;
+          }
+          console.log('[INFO] Initialized stock levels for', products.length, 'products');
+        }
+      } catch (err) {
+        console.warn('Failed to initialize stock levels:', err);
+      }
+    }
+    
+    async function checkForStockUpdates() {
+      if (!currentVendor) return;
+      
+      try {
+  const result = await API.apiGetProductsByVendor(currentVendor.id);
+        if (result.success && result.data) {
+          const products = result.data;
+          
+          for (const product of products) {
+            const productId = product.id;
+            const currentStock = product.stock || 0;
+            const previousStock = previousStockLevels[productId];
+            
+            // Check if stock just dropped to zero
+            if (previousStock !== undefined && previousStock > 0 && currentStock === 0) {
+              showStockZeroNotification(product);
+              
+              // Update the card immediately
+              const card = document.getElementById(`product-card-${productId}`);
+              if (card) card.classList.add('out-of-stock');
+              
+              const stockElement = document.getElementById(`stock-${productId}`);
+              if (stockElement) stockElement.textContent = '0';
+            }
+            
+            // Update stored stock level
+            previousStockLevels[productId] = currentStock;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to check stock updates:', err);
+      }
+    }
+    
+    function showStockZeroNotification(product) {
+      // Add to local notifications list
+      stockZeroNotifications.push({
+        id: `stock-${product.id}-${Date.now()}`,
+        productId: product.id,
+        productName: product.name,
+        productImage: product.imageUrl,
+        message: `${product.name} is now OUT OF STOCK`,
+        createdAt: new Date().toISOString(),
+        type: 'stock-alert'
+      });
+      
+      // Update notification badge
+      updateNotificationBadge();
+      
+      // Play alert sound
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 600;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } catch (err) {
+        console.log('Could not play alert sound:', err);
+      }
+    }
+    
+    function updateNotificationBadge() {
+      // Reuse the existing loadVendorNotifications function to update the badge
+      loadVendorNotifications();
+    }
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+        if (notificationCheckInterval) clearInterval(notificationCheckInterval);
+    });
+  </script>
+</body>
+</html>

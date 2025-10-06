@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+  <title>QuicKart - Login/Register</title>
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119566/title-logo_ward5i.png">
+  <style>
+    body {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      animation: slideIn 0.4s ease-out;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-logo img {
+      width: 120px;
+      height: auto;
+    }
+    .login-container h2 {
+      color: #ff6b35;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 30px 0;
+    }
+    .login-container select,
+    .login-container input {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      color: #333;
+      background-color: #fff;
+    }
+    .login-container input::placeholder {
+      color: #999;
+    }
+    .login-container select:focus,
+    .login-container input:focus {
+      outline: none;
+      border-color: #ff6b35;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+    .login-container button {
+      width: 100%;
+      padding: 14px;
+      background: #f46303;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    .login-container button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+    }
+    .login-container button:active {
+      transform: translateY(0);
+    }
+    .link {
+      color: #2c3e50;
+      text-align: center;
+      margin-top: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+    .link:hover {
+      color: #ff6b35;
+      text-decoration: underline;
+    }
+    .divider {
+      text-align: center;
+      margin: 20px 0;
+      color: #999;
+      font-size: 14px;
+    }
+    /* Registration Modal Styling */
+    #registerModal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(255, 107, 53, 0.2);
+      backdrop-filter: blur(8px);
+    }
+    #registerModal .modal-content {
+      background: white;
+      margin: 5% auto;
+      padding: 40px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.4s ease-out;
+      position: relative;
+    }
+    #registerModal h2 {
+      color: #ff6b35;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 30px 0;
+    }
+    #registerModal select,
+    #registerModal input {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      color: #333;
+      background-color: #fff;
+    }
+    #registerModal input::placeholder {
+      color: #999;
+    }
+    #registerModal select:focus,
+    #registerModal input:focus {
+      outline: none;
+      border-color: #ff6b35;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+    #registerModal button {
+      width: 100%;
+      padding: 14px;
+      background: #f46303;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    #registerModal button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+    }
+    #registerModal button:active {
+      transform: translateY(0);
+    }
+    .close-btn {
+      color: #999;
+      float: right;
+      font-size: 32px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      line-height: 20px;
+      margin: -10px -10px 0 0;
+    }
+    .close-btn:hover {
+      color: #ff6b35;
+    }
+    /* Vendor Details Modal */
+    #vendorDetailsModal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(255, 107, 53, 0.2);
+      backdrop-filter: blur(8px);
+    }
+    #vendorDetailsModal .modal-content {
+      background: white;
+      margin: 5% auto;
+      padding: 40px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.4s ease-out;
+      position: relative;
+    }
+    #vendorDetailsModal h2 {
+      color: #ff6b35;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 30px 0;
+    }
+    #vendorDetailsModal input,
+    #vendorDetailsModal select {
+      width: 100%;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+      color: #333;
+      background-color: #fff;
+    }
+    #vendorDetailsModal input::placeholder {
+      color: #999;
+    }
+    #vendorDetailsModal input:focus {
+      outline: none;
+      border-color: #ff6b35;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+    #vendorDetailsModal button {
+      width: 100%;
+      padding: 14px;
+      background: #F46303;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    #vendorDetailsModal button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+    }
+    #vendorDetailsModal button:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px;">
+  <!-- Login Modal - This is the primary view for login.html -->
+  <div id="loginContainer" class="login-container">
+    <div class="login-logo">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuicKart Logo">
+    </div>
+    <h2 id="loginTitle">Welcome Back!</h2>
+    <select id="loginRole" onchange="updateLoginTitle()">
+      <option value="select">-select-</option>
+      <option value="customer">Customer</option>
+      <option value="vendor">Vendor</option>
+    </select>
+    <input type="text" id="loginUsername" placeholder="Username" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <div class="link">Forgot Password?</div>
+    <button onclick="login()">Login</button>
+    <div class="link" onclick="openRegister()">Create New Account</div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content large-modal">
+      <span class="close-btn" onclick="closeRegister()">&times;</span>
+      <h2 id="registerTitle">Customer Registration</h2>
+      <select id="registerRole" onchange="updateRegisterForm()">
+        <option value="">-select-</option>
+        <option value="customer">Customer</option>
+        <option value="vendor">Vendor</option>
+      </select>
+      <div id="customerFields">
+        <input type="tel" id="customerPhone" placeholder="Phone Number" required />
+        <input type="password" id="customerPassword" placeholder="Create Password" required />
+        <input type="text" id="customerName" placeholder="Name" required />
+        <input type="text" id="customerAddress" placeholder="Address" required />
+        <input type="text" id="customerPincode" placeholder="Pincode" required />
+        <button onclick="registerCustomer()">Register</button>
+      </div>
+      <div id="vendorFields" style="display:none;">
+        <input type="tel" id="vendorPhone" placeholder="Phone Number" required />
+        <input type="password" id="vendorPassword" placeholder="Create Password" required />
+        <input type="text" id="vendorPincode" placeholder="Pincode" required />
+        <button onclick="nextVendorPage()">Next: Shop Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor Details Modal -->
+  <div id="vendorDetailsModal" class="modal">
+    <div class="modal-content large-modal">
+      <span class="close-btn" onclick="closeVendorDetails()">&times;</span>
+      <h2>Vendor Shop Details</h2>
+      <input type="text" id="shopName" placeholder="Shop Name" required />
+      <select id="shopCategory">
+        <option value="">Select Primary Category</option>
+        <option value="grocery">Grocery</option>
+        <option value="electronics">Electronics</option>
+        <option value="fashion">Fashion</option>
+        <option value="stationery">Stationery</option>
+        <option value="snacks">Snacks and Beverages</option>
+      </select>
+      <input type="text" id="shopAddress" placeholder="Shop Address" required />
+      <button onclick="saveVendor()">Complete Registration</button>
+    </div>
+  </div>
+
+  <!-- Backend Integration -->
+  <script src="backend-integration.js"></script>
+  
+  <script>
+    const API = window.QuickKartAPI || {
+      notifySuccess: (msg) => alert('Success: ' + msg),
+      notifyError: (msg) => alert('Error: ' + msg),
+      notifyWarning: (msg) => alert('Warning: ' + msg),
+      notifyInfo: (msg) => alert('Info: ' + msg),
+      showLoading: () => {},
+      apiLogin: async () => ({ success: false, error: 'API not loaded' }),
+      apiRegister: async () => ({ success: false, error: 'API not loaded' })
+    };
+    
+    // Check if API loaded correctly
+    if (!window.QuickKartAPI) {
+      console.error('QuickKartAPI failed to load! Check backend-integration.js');
+    }
+    
+    // Check if a role is already selected on load to prevent selecting 'select' again.
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLoginTitle();
+        updateRegisterForm(); // Initialize registration form state
+    });
+
+    function updateLoginTitle() {
+      const role = document.getElementById('loginRole').value;
+      document.getElementById('loginTitle').textContent = `${role === 'select' ? 'Select' : role.charAt(0).toUpperCase() + role.slice(1)} Login`;
+    }
+
+    // --- Login Function with Backend API ---
+    async function login() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const role = document.getElementById('loginRole').value;
+
+      if (!username || !password) {
+        API.notifyWarning('Please fill in both Username and Password.');
+        return;
+      }
+
+      if (role === 'select' || !role) {
+        API.notifyInfo('Please select whether you are a customer or vendor.');
+        return;
+      }
+
+      // Call backend login API
+      API.showLoading(true);
+      const result = await API.apiLogin(username, password);
+      API.showLoading(false);
+
+      if (result.success) {
+        const userData = result.data;
+        // Verify role matches
+        if (userData.role.toLowerCase() !== role.toLowerCase()) {
+          API.notifyWarning('The selected role does not match this account. Pick the correct role to continue.');
+          return;
+        }
+        // Store complete session data
+        localStorage.setItem('userRole', userData.role);
+        localStorage.setItem('userName', userData.username);
+        localStorage.setItem('userId', userData.id || '');
+        localStorage.setItem('userPincode', userData.pincode || '');
+        localStorage.setItem('userEmail', userData.email || '');
+        localStorage.setItem('userPhone', userData.phone || '');
+        API.notifySuccess('Welcome back! Redirecting...');
+        // Redirect to index.html for all users after login
+        window.location.replace('index.html');
+      } else {
+        API.notifyError(`Login failed: ${result.error || 'Something went wrong.'}`);
+      }
+    }
+    
+    // --- Registration Modal Functions ---
+    function openRegister() {
+      // Hide login view and show register modal
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('registerModal').style.display = 'block';
+    }
+
+    function closeRegister() {
+      document.getElementById('registerModal').style.display = 'none';
+      document.getElementById('loginContainer').style.display = 'block'; // Show login again
+    }
+
+    function updateRegisterForm() {
+      const role = document.getElementById('registerRole').value;
+      document.getElementById('registerTitle').textContent = `${role.charAt(0).toUpperCase() + role.slice(1)} Registration`;
+      document.getElementById('customerFields').style.display = role === 'customer' ? 'block' : 'none';
+      document.getElementById('vendorFields').style.display = role === 'vendor' ? 'block' : 'none';
+    }
+
+    // --- Customer Registration Logic with Backend API ---
+    async function registerCustomer() {
+        // Get customer details using IDs
+        const phone = document.getElementById('customerPhone').value.trim();
+        const password = document.getElementById('customerPassword').value.trim();
+        const name = document.getElementById('customerName').value.trim();
+        const address = document.getElementById('customerAddress').value.trim();
+        const pincode = document.getElementById('customerPincode').value.trim();
+        
+        // Validation
+        if (!phone || !password || !name || !address || !pincode) {
+          API.notifyWarning('Please complete all customer registration fields.');
+          return;
+        }
+        
+        // Validate pincode
+        if (!/^\d{6}$/.test(pincode)) {
+          API.notifyWarning('Pincode must be exactly 6 digits.');
+          return;
+        }
+
+        // Validate phone
+        if (!/^\d{10}$/.test(phone)) {
+          API.notifyWarning('Phone number must be exactly 10 digits.');
+          return;
+        }
+
+        // Call backend registration API
+        const registrationData = {
+          username: name,
+          password: password,
+          email: phone + '@quickkart.com', // Use phone as email if not provided
+          phone: phone,
+          pincode: pincode,
+          address: address,
+          role: 'CUSTOMER'
+        };
+
+        API.showLoading(true);
+        const result = await API.apiRegister(registrationData);
+        API.showLoading(false);
+
+        if (result.success) {
+          API.notifySuccess('Customer registered successfully! Please login with your credentials.');
+          closeRegister();
+          
+          // Pre-fill login form
+          document.getElementById('loginUsername').value = name;
+          document.getElementById('loginRole').value = 'customer';
+          updateLoginTitle();
+          
+          // Focus on password field for user convenience
+          document.getElementById('loginPassword').focus();
+        } else {
+          API.notifyError(`Registration failed: ${result.error || 'Please try again later.'}`);
+        }
+    }
+
+    // --- Vendor Registration Flow with Backend API ---
+    let vendorTempData = {};
+    
+    function nextVendorPage() {
+      // Get vendor data using IDs
+      vendorTempData.phone = document.getElementById('vendorPhone').value.trim();
+      vendorTempData.password = document.getElementById('vendorPassword').value.trim();
+      vendorTempData.pincode = document.getElementById('vendorPincode').value.trim();
+
+      // Validation
+      if (!vendorTempData.phone || !vendorTempData.password || !vendorTempData.pincode) {
+        API.notifyWarning('Please complete all vendor registration fields.');
+        return;
+      }
+
+      // Validate
+      if (!/^\d{6}$/.test(vendorTempData.pincode)) {
+        API.notifyWarning('Pincode must be exactly 6 digits.');
+        return;
+      }
+
+      if (!/^\d{10}$/.test(vendorTempData.phone)) {
+        API.notifyWarning('Phone number must be exactly 10 digits.');
+        return;
+      }
+
+      closeRegister();
+      document.getElementById('vendorDetailsModal').style.display = 'block';
+    }
+
+    async function saveVendor() {
+      const shopName = document.getElementById('shopName').value.trim();
+      const shopCategory = document.getElementById('shopCategory').value;
+      const shopAddress = document.getElementById('shopAddress').value.trim();
+
+      if (!shopName || !shopCategory || !shopAddress) {
+        API.notifyWarning('Please fill in all vendor shop details.');
+        return;
+      }
+      
+      // Combine all vendor data
+      const registrationData = {
+        username: shopName,
+        password: vendorTempData.password,
+        email: vendorTempData.phone + '@quickkart.com',
+        phone: vendorTempData.phone,
+        pincode: vendorTempData.pincode,
+        address: shopAddress,
+        role: 'VENDOR'
+      };
+
+      API.showLoading(true);
+      const result = await API.apiRegister(registrationData);
+      API.showLoading(false);
+
+      if (result.success) {
+        API.notifySuccess('Vendor registered successfully! Please login with your credentials.');
+        closeVendorDetails();
+        closeRegister();
+        // Pre-fill login form
+        document.getElementById('loginUsername').value = shopName;
+        document.getElementById('loginRole').value = 'vendor';
+        updateLoginTitle();
+        // Focus on password field for user convenience
+        document.getElementById('loginPassword').focus();
+      } else {
+        API.notifyError(`Registration failed: ${result.error || 'Please try again later.'}`);
+      }
+    }
+
+    function closeVendorDetails() {
+      document.getElementById('vendorDetailsModal').style.display = 'none';
+      openRegister(); // Go back to register screen if they close vendor details
+    }
+
+    // --- Utility Function ---
+    function validateFields(fields) {
+      let isValid = true;
+      fields.forEach(field => {
+        const value = field.value.trim();
+        if (!value) {
+          field.style.border = '2px solid red';
+          field.setAttribute('title', 'This field is required');
+          isValid = false;
+        } else {
+          field.style.border = '1px solid #ccc';
+          field.removeAttribute('title');
+        }
+      });
+      return isValid;
+    }
+  </script>
+</body>
+</html>

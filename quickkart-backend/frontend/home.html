@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>About QuicKart | Our Story</title>
+    <style>
+        /* CSS for the body and main content */
+        body {
+            /* Ensures content starts below the fixed navbar */
+            padding-top: 60px; 
+            background: linear-gradient(to right, #fff8f0, #ffebee);
+        }
+
+        /* Container for the About Us content */
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+
+        /* Title and Intro Section */
+        .page-intro {
+            text-align: center;
+            padding: 40px 0 20px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .page-intro h1 {
+            color: #ff6f61;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-intro p {
+            font-size: 1.2rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Styling the individual story sections (replacing .abt-us) */
+        .story-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out both;
+        }
+        
+        /* Alternating layout for a magazine-style look */
+        .story-section:nth-child(even) {
+            flex-direction: row-reverse;
+            background: #fff9f5;
+        }
+
+        /* Adding animation delays for staggered effect */
+        .story-section:nth-child(2) { animation-delay: 0.2s; }
+        .story-section:nth-child(3) { animation-delay: 0.4s; }
+        .story-section:nth-child(4) { animation-delay: 0.6s; }
+
+        .story-image-wrapper {
+            flex: 0 0 45%; /* Fixed width for the image */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .story-image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.5s ease; /* Zoom on hover */
+        }
+        
+        .story-image-wrapper img:hover {
+            transform: scale(1.05);
+        }
+
+        .story-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .story-content h2 {
+            color: #F46303;
+            font-size: 2rem;
+            border-bottom: 3px solid #ff6f61;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .story-content p {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Cleanup unused/overridden styles */
+        .index-button, .abt-us {
+            display: none; /* Hide the old, messy containers */
+        }
+        
+        @media (max-width: 900px) {
+            .story-section {
+                flex-direction: column;
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+            .story-section:nth-child(even) {
+                flex-direction: column; /* Resetting row-reverse for mobile */
+            }
+            .story-image-wrapper {
+                flex: 0 0 100%;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        .hero{
+            width: 100%;
+            margin-bottom: 4rem;
+            width: 100%;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+    <div class="logo">
+      <a href="index.html">
+      <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo" > </a>
+    </div>
+    <div class="search-bar">
+      <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon" loading="lazy"/>
+      <input type="text" placeholder="Search for products..." />
+      <button class="search-btn">Search</button>
+    </div>
+    <div class="nav-buttons">
+      <a id="homeBtn" href="index.html" class="nav-link-button">Back</a>
+      <button id="cartBtn" disabled>My Cart</button>
+      <button id="loginBtn" onclick="window.location.href='login.html'">Login</button> 
+      <div class="account-menu" id="accountMenu" style="display: none;">
+        <button onclick="toggleAccount()">My Account</button>
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="order-history.html">Order History</a>
+          <a href="address-details.html">Address Book</a>
+          <a href="#">User Settings</a>
+          <a href="#">Wallet Details</a>
+          <a href="#" onclick="logout()">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+    <div class="about-container">
+        <div class="page-intro">
+            
+        </div>
+
+        
+                <img class="hero" src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_90,w_1400/v1759470870/Frame_30_prl8bw.png" alt="hero" loading="lazy">
+            
+
+        <section class="story-section">
+            <div class="story-image-wrapper">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_auto,w_600/v1759470847/Frame_31_u8er7e.png" alt="two people collaborating" loading="lazy">
+            </div>
+            <div class="story-content">
+                <h2>Focus on Community Impact</h2>
+                <p>"By streamlining rapid delivery and upholding standards of fair and transparent trade, we ensure that consumer spending provides direct support to local entrepreneurs. This model is central to our mission of building stronger, more sustainable communities founded on mutual trust."</p>
+            </div>
+        </section>
+        
+        <section class="story-section">
+            <div class="story-image-wrapper">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_auto,w_600/v1759470799/Frame_33_fooak9.png" alt="showing modern technology and data" loading="lazy">
+            </div>
+            <div class="story-content">
+                <h2>Technology Driven Experience</h2>
+                <p>From seamless order tracking to personalized recommendations, our tech stack is designed to make your shopping experience effortless. We use cutting-edge technology to ensure fast processing and accurate inventory management for all our partners.</p>
+            </div>
+        </section>
+        
+        <section class="story-section">
+            <div class="story-image-wrapper">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/f_auto,q_auto,w_600/v1759470790/Frame_29_3_tes0xz.png" alt="diverse products being packaged" loading="lazy">
+            </div>
+            <div class="story-content">
+                <h2>The Promise: Quality in Every Box</h2>
+                <p>We guarantee the quality of every product listed on QuicKart. Our commitment extends beyond the click; we ensure careful handling and packaging, so your items arrive fresh and exactly as expected, every single time.</p>
+            </div>
+        </section>
+
+        <div class="page-intro" style="padding-top: 0; padding-bottom: 80px;">
+            <h2>Join the QuicKart Family Today!</h2>
+            <a href="index.html" class="nav-link-button" style="margin-top: 15px; padding: 10px 25px; font-size: 1.1rem; background-color: #F46303; color: white;">Start Shopping</a>
+        </div>
+    </div>
+    
+    <!-- Backend Integration -->
+    <script src="backend-integration.js"></script>
+    
+    <script>
+        const API = window.QuickKartAPI;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserLogin();
+            updateCartButton();
+        });
+
+        function checkUserLogin() {
+            const userRole = localStorage.getItem('userRole');
+            const userName = localStorage.getItem('userName');
+
+            if (userRole && userName) {
+                // Hide Login button, show Account menu
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('accountMenu').style.display = 'inline-block';
+                
+                // Enable cart button for customers
+                if (userRole.toUpperCase() === 'CUSTOMER') {
+                    const cartBtn = document.getElementById('cartBtn');
+                    cartBtn.disabled = false;
+                    cartBtn.onclick = function() {
+                        window.location.href = 'cart.html';
+                    };
+                }
+            } else {
+                // Show Login button, hide Account menu
+                document.getElementById('loginBtn').style.display = 'inline-block';
+                document.getElementById('accountMenu').style.display = 'none';
+            }
+        }
+
+        function updateCartButton() {
+            const user = API.getCurrentUser();
+            if (user && user.role === 'CUSTOMER') {
+                const cartBtn = document.getElementById('cartBtn');
+                cartBtn.disabled = false;
+                cartBtn.style.cursor = 'pointer';
+                cartBtn.onclick = function() {
+                    window.location.href = 'cart.html';
+                };
+            }
+        }
+
+        function logout() {
+            API.apiLogout();
+            API.notifySuccess('Logged out successfully');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+        
+        function toggleAccount() {
+            const dropdown = document.getElementById('accountDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.account-menu button') && !event.target.closest('.account-dropdown')) {
+                const dropdown = document.getElementById('accountDropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

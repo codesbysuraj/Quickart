@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - QuickKart Vendor</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759063522/title-logo_rbudo9.png">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Notification sound logic should be inside a function, not outside */
+        /* Remove stray closing parenthesis and misplaced code */
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-card {
+            background-color:#F46303;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff6b35;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-id {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 0.3rem;
+        }
+
+        .customer-name {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .order-date {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .order-status-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-placed {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        .product-details {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .product-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .product-revenue {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-status {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-status:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-deliver {
+            background: #F46303;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #ff6b35;
+        }
+
+        .new-order-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #dc3545;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar">
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo">
+            </a>
+        </div>
+        <div class="search-bar">
+            <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+            <input type="text" placeholder="Search orders..."/>
+            <button class="search-btn" >Search</button>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-link-button"  ><a style="text-decoration: none;color:#F46303;"   id="homeBtn" href="home.html">About</a></button>
+    <button class="nav-link-button"><a style="text-decoration:none;color:#F46303;" href="vendor.html">Back to Store</a></button> 
+
+    <div class="account-menu" id="accountMenu" style="display: inline-block;">
+    <button onclick="toggleAccount()">My Account</button>
+    <div class="account-dropdown" id="accountDropdown" style="display: none; flex-direction: column;">
+        <a href="vendor-orders.html">Order Management</a>
+        <a href="user-settings.html">User Settings</a>
+        <button type="button" onclick="logout()">Logout</button>
+    </div>
+</div>
+</div>
+    </header>
+
+    <div class="orders-container">
+        <div class="page-header">
+            <h1>Order Management</h1>
+            <p>View and manage orders for your products</p>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="newOrders">0</div>
+                <div class="stat-label">New Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <div id="ordersContent">
+            <div class="loading-spinner">Loading orders...</div>
+        </div>
+    </div>
+
+    <script src="backend-integration.js"></script>
+    <script>
+        // Make sure toggleAccount is defined first
+        function toggleAccount() {
+            const dropdown = document.getElementById('accountDropdown');
+            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        let currentOrders = [];
+    let previousOrderCount = 0;
+        let refreshInterval;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search bar logic
+            const searchInput = document.querySelector('.search-bar input');
+            const searchBtn = document.querySelector('.search-bar .search-btn');
+            function searchOrders(query) {
+                query = query.trim().toLowerCase();
+                if (!query) {
+                    displayOrders(currentOrders);
+                    return;
+                }
+                // Filter orders by customer name, order id, or product name
+                const filtered = currentOrders.filter(item => {
+                    const orderIdMatch = String(item.order.id).includes(query);
+                    const customerMatch = (item.order.user && item.order.user.fullName && item.order.user.fullName.toLowerCase().includes(query));
+                    const productMatch = item.items.some(i => i.product && i.product.name && i.product.name.toLowerCase().includes(query));
+                    return orderIdMatch || customerMatch || productMatch;
+                });
+                displayOrders(filtered);
+            }
+            if (searchBtn && searchInput) {
+                searchBtn.addEventListener('click', () => searchOrders(searchInput.value));
+                searchInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') searchOrders(searchInput.value);
+                });
+            }
+            if (!window.QuickKartAPI) {
+                console.error('QuickKartAPI is not loaded.');
+                return;
+            }
+            const { getCurrentUser, apiGetVendorOrders, apiUpdateOrderStatus, notifySuccess, notifyError, confirm } = window.QuickKartAPI;
+
+            async function loadVendorOrders() {
+                const user = getCurrentUser();
+                if (!user) {
+                    notifyError('Please login first');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const result = await apiGetVendorOrders(user.username);
+                
+                if (result.success) {
+                    // Check for new orders
+                    const newOrderCount = result.data.length;
+                    if (previousOrderCount !== 0 && newOrderCount > previousOrderCount) {
+                        showOrderNotification(newOrderCount - previousOrderCount);
+                        playNotificationSound();
+                    }
+                    previousOrderCount = newOrderCount;
+                    currentOrders = result.data;
+                    displayOrders(result.data);
+                    updateStats(result.data);
+                } else {
+                    notifyError('Failed to load orders');
+                    document.getElementById('ordersContent').innerHTML = `
+                        <div class="no-orders">
+                            <p> Failed to load orders</p>
+                            <p>${result.error || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function updateStats(ordersData) {
+                const newOrders = ordersData.filter(o => o.order.status === 'PLACED').length;
+                const totalRevenue = ordersData.reduce((sum, orderData) => {
+                    const orderTotal = orderData.items.reduce((itemSum, item) => 
+                        itemSum + (item.quantity * item.price), 0);
+                    return sum + orderTotal;
+                }, 0);
+                document.getElementById('totalOrders').textContent = ordersData.length;
+                document.getElementById('newOrders').textContent = newOrders;
+                document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+            }
+
+            function displayOrders(ordersData) {
+                const container = document.getElementById('ordersContent');
+                if (!ordersData || ordersData.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-orders">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;"></div>
+                            <h2>No Orders Yet</h2>
+                            <p>Orders for your products will appear here!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                const sortedOrders = [...ordersData]
+                    .sort((a, b) => new Date(b.order.createdAt) - new Date(a.order.createdAt));
+                container.innerHTML = sortedOrders.map((orderData, idx) => 
+                    createOrderCard(orderData.order, orderData.items, orderData.customer, idx)
+                ).join('');
+                // Attach event listeners for order cards and status buttons
+                document.querySelectorAll('.order-card').forEach((card, idx) => {
+                    card.addEventListener('click', function(e) {
+                        // Prevent click on status buttons from triggering modal
+                        if (e.target.classList.contains('btn-status')) return;
+                        const orderData = sortedOrders[idx];
+                        showOrderDetails(orderData.order, orderData.items, orderData.customer);
+                    });
+                    // Attach status button listeners
+                    card.querySelectorAll('.btn-status').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const orderId = btn.getAttribute('data-order-id');
+                            const newStatus = btn.getAttribute('data-status');
+                            updateStatus(orderId, newStatus);
+                        });
+                    });
+                });
+            }
+
+            function createOrderCard(order, items, customer) {
+                const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const statusClass = `status-${order.status.toLowerCase()}`;
+                const isNew = order.status === 'PLACED';
+                const productsHTML = items.map(item => `
+                    <div class="product-info">
+                        <div class="product-details">
+                            <div class="product-name">${item.product.name}</div>
+                            <div class="product-meta">
+                                Quantity: ${item.quantity} × ₹${item.price.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="product-revenue">₹${(item.quantity * item.price).toFixed(2)}</div>
+                    </div>
+                `).join('');
+                let actionButtons = '';
+                if (order.status === 'PLACED') {
+                    actionButtons = `
+                        <div class="action-buttons">
+                            <button class="btn-status btn-confirm" data-order-id="${order.id}" data-status="CONFIRMED">
+                                ✓ Confirm Order
+                            </button>
+                            <button class="btn-status btn-cancel" data-order-id="${order.id}" data-status="CANCELLED">
+                                ✕ Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (order.status === 'CONFIRMED') {
+                    actionButtons = `
+                        <div class="action-buttons">
+                            <button class="btn-status btn-deliver" data-order-id="${order.id}" data-status="DELIVERED">
+                                Mark as Delivered
+                            </button>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <div class="order-id">
+                                    Order #${order.id}
+                                    ${isNew ? '<span class="new-order-indicator"></span>' : ''}
+                                </div>
+                                <div class="customer-name">Customer: ${customer ? customer.username : 'Unknown'}</div>
+                                <div class="order-date">${orderDate}</div>
+                            </div>
+                            <span class="order-status-badge ${statusClass}">${order.status}</span>
+                        </div>
+                        ${productsHTML}
+                        ${actionButtons}
+                    </div>
+                `;
+            }
+
+            async function updateStatus(orderId, newStatus) {
+                const statusMessages = {
+                    'CONFIRMED': 'Are you sure you want to confirm this order?',
+                    'DELIVERED': 'Mark this order as delivered?',
+                    'CANCELLED': 'Are you sure you want to cancel this order?'
+                };
+                const confirmed = await confirm(statusMessages[newStatus], {
+                    title: 'Update Order Status',
+                    confirmText: 'Yes, Update',
+                    cancelText: 'No'
+                });
+                if (!confirmed) return;
+                const result = await apiUpdateOrderStatus(orderId, newStatus);
+                if (result.success) {
+                    notifySuccess(`Order #${orderId} status updated to ${newStatus}`);
+                    loadVendorOrders(); // Reload orders
+                } else {
+                    notifyError('Failed to update order status');
+                }
+            }
+
+            // Load orders on page load
+            const accountMenu = document.getElementById('accountMenu');
+            const user = getCurrentUser();
+            if (user) {
+                if (accountMenu) accountMenu.style.display = 'inline-block';
+                loadVendorOrders();
+                refreshInterval = setInterval(loadVendorOrders, 20000);
+            } else {
+                window.location.href = 'login.html';
+            }
+
+            window.addEventListener('beforeunload', () => {
+                if (refreshInterval) clearInterval(refreshInterval);
+            });
+        });
+
+        // Modal logic for order details
+        function showOrderDetails(order, items, customer) {
+            // Remove any existing modal
+            let modal = document.getElementById('orderDetailsModal');
+            if (modal) modal.remove();
+            modal = document.createElement('div');
+            modal.id = 'orderDetailsModal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.5)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = '9999';
+            
+            // Extract address from all possible sources
+            let address = '';
+            let addressParts = [];
+            
+            // Try order.orderAddress first (most specific)
+            if (order.orderAddress) {
+                // Check for fullAddress field first (this is the main address field)
+                if (order.orderAddress.fullAddress) {
+                    addressParts.push(order.orderAddress.fullAddress.replace(/\n/g, ', '));
+                } else {
+                    // Fallback to individual fields
+                    if (order.orderAddress.street) addressParts.push(order.orderAddress.street);
+                    if (order.orderAddress.city) addressParts.push(order.orderAddress.city);
+                    if (order.orderAddress.state) addressParts.push(order.orderAddress.state);
+                    if (order.orderAddress.landmark) addressParts.push(order.orderAddress.landmark);
+                }
+                // Add pincode separately
+                if (order.orderAddress.pincode) addressParts.push(order.orderAddress.pincode);
+            }
+            
+            // If no order address, try order.address
+            if (addressParts.length === 0 && order.address) {
+                if (typeof order.address === 'object') {
+                    if (order.address.fullAddress) {
+                        addressParts.push(order.address.fullAddress.replace(/\n/g, ', '));
+                    } else {
+                        if (order.address.street) addressParts.push(order.address.street);
+                        if (order.address.city) addressParts.push(order.address.city);
+                        if (order.address.state) addressParts.push(order.address.state);
+                        if (order.address.landmark) addressParts.push(order.address.landmark);
+                    }
+                    if (order.address.pincode) addressParts.push(order.address.pincode);
+                } else {
+                    addressParts.push(order.address);
+                }
+            }
+            
+            // If still no address, try customer.address + pincode
+            if (addressParts.length === 0 && customer) {
+                if (customer.address) {
+                    if (typeof customer.address === 'object') {
+                        if (customer.address.fullAddress) {
+                            addressParts.push(customer.address.fullAddress.replace(/\n/g, ', '));
+                        } else {
+                            if (customer.address.street) addressParts.push(customer.address.street);
+                            if (customer.address.city) addressParts.push(customer.address.city);
+                            if (customer.address.state) addressParts.push(customer.address.state);
+                            if (customer.address.landmark) addressParts.push(customer.address.landmark);
+                        }
+                    } else {
+                        addressParts.push(customer.address);
+                    }
+                }
+                if (customer.pincode) addressParts.push(customer.pincode);
+            }
+            
+            address = addressParts.length > 0 ? addressParts.join(', ') : 'No address provided';
+            let contact = 'N/A';
+            if (order.orderAddress && (order.orderAddress.contactNo || order.orderAddress.mobile || order.orderAddress.phone)) {
+                contact = order.orderAddress.contactNo || order.orderAddress.mobile || order.orderAddress.phone;
+            } else if (order.address && (order.address.contactNo || order.address.mobile || order.address.phone)) {
+                contact = order.address.contactNo || order.address.mobile || order.address.phone;
+            } else if (customer && (customer.contactNo || customer.mobile || customer.phone)) {
+                contact = customer.contactNo || customer.mobile || customer.phone;
+            }
+            if (!contact || contact === '') contact = 'N/A';
+            modal.innerHTML = `
+                <div style="background:white;max-width:500px;width:90%;border-radius:10px;padding:2rem;position:relative;">
+                    <button style="position:absolute;top:10px;right:10px;font-size:1.5rem;background:none;border:none;cursor:pointer;" id="closeOrderModal">&times;</button>
+                    <h2>Order #${order.id}</h2>
+                    <p><strong>Customer:</strong> ${customer ? customer.name || customer.username : 'Unknown'}</p>
+                    <p><strong>Contact:</strong> ${contact}</p>
+                    <p><strong>Address:</strong> ${address}</p>
+                    <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                    <h3>Items:</h3>
+                    <ul style="padding-left:1.2em;">
+                        ${items.map(item => `<li>${item.product.name} - Qty: ${item.quantity} × ₹${item.price.toFixed(2)} = ₹${(item.quantity * item.price).toFixed(2)}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('closeOrderModal').onclick = () => modal.remove();
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (err) {
+                console.log('Could not play sound:', err);
+            }
+        }
+
+        function showOrderNotification(newOrders) {
+            // Remove any existing notification
+            let toast = document.getElementById('orderToast');
+            if (toast) toast.remove();
+            toast = document.createElement('div');
+            toast.id = 'orderToast';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '30px';
+            toast.style.right = '30px';
+            toast.style.background = '#F46303';
+            toast.style.color = 'white';
+            toast.style.padding = '1.2em 2em';
+            toast.style.borderRadius = '8px';
+            toast.style.fontSize = '1.2em';
+            toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+            toast.style.zIndex = '99999';
+            toast.innerHTML = `<strong>Order Received!</strong><br>${newOrders} new order${newOrders > 1 ? 's' : ''} just arrived.`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+
+        function logout() {
+            // Implement logout logic here
+            // For example, clear user session and redirect to login page
+            if (window.QuickKartAPI && typeof window.QuickKartAPI.logout === 'function') {
+                window.QuickKartAPI.logout();
+            }
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

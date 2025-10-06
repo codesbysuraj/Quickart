@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management - QuickKart Vendor</title>
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759063522/title-logo_rbudo9.png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .orders-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            margin-top: 100px;
+            padding: 0 1rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff6b35;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-id {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 0.3rem;
+        }
+
+        .customer-name {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .order-date {
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .order-status-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-placed {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+
+        .product-details {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .product-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .product-revenue {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-status {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-status:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-confirm {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-deliver {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #ff6b35;
+        }
+
+        .new-order-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #dc3545;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar">
+        <div class="logo">
+            <a href="index.html">
+                <img src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759119568/logo_qbsfps.png" alt="QuickKart Logo">
+            </a>
+        </div>
+        <div class="search-bar">
+            <img style="height: 40px;border-top-left-radius:10px;border-bottom-left-radius:10px;" src="https://res.cloudinary.com/dfwsy9yak/image/upload/v1759170467/search-icon_eufwtm.png" alt="search icon"/>
+            <input type="text" placeholder="Search orders..." disabled style="opacity: 0.6; cursor: not-allowed;" />
+            <button class="search-btn" disabled style="opacity: 0.6; cursor: not-allowed;">Search</button>
+        </div>
+        <div class="nav-buttons">
+            <a href="vendor.html" class="nav-link-button">Back to Store</a>
+            <button id="ordersBtn" style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); border: 2px solid white; position: relative;">Order Management
+                <span id="orderBadge" class="notification-badge" style="display: none; position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: bold;">0</span>
+            </button>
+            <div class="account-menu" id="accountMenu" style="display: none;">
+                <button onclick="toggleAccount()">My Account</button>
+                <div class="account-dropdown" id="accountDropdown">
+                    <a href="vendor-orders.html">Order Management</a>
+                    <a href="#">Shop Settings</a>
+                    <a href="#">Payment Details</a>
+                    <a href="#">Account Privacy</a>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="orders-container">
+        <div class="page-header">
+            <h1>Order Management</h1>
+            <p>View and manage orders for your products</p>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="newOrders">0</div>
+                <div class="stat-label">New Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRevenue">₹0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <div id="ordersContent">
+            <div class="loading-spinner">Loading orders...</div>
+        </div>
+    </div>
+
+    <script src="backend-integration.js?v=2"></script>
+    <script>
+        // Define toggleAccount FIRST before anything else
+        function toggleAccount() {
+            const dropdown = document.getElementById('accountDropdown');
+            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        const { getCurrentUser, apiGetVendorOrders, apiUpdateOrderStatus, notifySuccess, notifyError, confirm } = window.QuickKartAPI;
+
+        let currentOrders = [];
+        let refreshInterval;
+
+        async function loadVendorOrders() {
+            const user = getCurrentUser();
+            if (!user) {
+                notifyError('Please login first');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Update user display
+            document.getElementById('userDisplay').textContent = user.username;
+
+            const result = await apiGetVendorOrders(user.username);
+            
+            if (result.success) {
+                currentOrders = result.data;
+                displayOrders(result.data);
+                updateStats(result.data);
+            } else {
+                notifyError('Failed to load orders');
+                document.getElementById('ordersContent').innerHTML = `
+                    <div class="no-orders">
+                        <p> Failed to load orders</p>
+                        <p>${result.error || 'Unknown error'}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats(orderItems) {
+            // Group by order
+            const ordersMap = new Map();
+            orderItems.forEach(item => {
+                if (!ordersMap.has(item.order.id)) {
+                    ordersMap.set(item.order.id, item.order);
+                }
+            });
+
+            const orders = Array.from(ordersMap.values());
+            const newOrders = orders.filter(o => o.status === 'PLACED').length;
+            const totalRevenue = orderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('newOrders').textContent = newOrders;
+            document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toFixed(2)}`;
+
+            // Update badge
+            const badge = document.getElementById('orderBadge');
+            if (newOrders > 0) {
+                badge.textContent = newOrders;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function displayOrders(orderItems) {
+            const container = document.getElementById('ordersContent');
+            
+            if (!orderItems || orderItems.length === 0) {
+                container.innerHTML = `
+                    <div class="no-orders">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                        <h2>No Orders Yet</h2>
+                        <p>Orders for your products will appear here!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by order
+            const ordersMap = new Map();
+            orderItems.forEach(item => {
+                if (!ordersMap.has(item.order.id)) {
+                    ordersMap.set(item.order.id, {
+                        order: item.order,
+                        items: []
+                    });
+                }
+                ordersMap.get(item.order.id).items.push(item);
+            });
+
+            // Sort by date (newest first)
+            const sortedOrders = Array.from(ordersMap.values())
+                .sort((a, b) => new Date(b.order.createdAt) - new Date(a.order.createdAt));
+
+            container.innerHTML = sortedOrders.map(({ order, items }) => 
+                createOrderCard(order, items)
+            ).join('');
+        }
+
+        function createOrderCard(order, items) {
+            const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const statusClass = `status-${order.status.toLowerCase()}`;
+            const isNew = order.status === 'PLACED';
+
+            const productsHTML = items.map(item => `
+                <div class="product-info">
+                    <div class="product-details">
+                        <div class="product-name">${item.product.name}</div>
+                        <div class="product-meta">
+                            Quantity: ${item.quantity} × ₹${item.price.toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="product-revenue">₹${(item.quantity * item.price).toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            let actionButtons = '';
+            if (order.status === 'PLACED') {
+                actionButtons = `
+                    <div class="action-buttons">
+                        <button class="btn-status btn-confirm" onclick="updateStatus(${order.id}, 'CONFIRMED')">
+                            ✓ Confirm Order
+                        </button>
+                        <button class="btn-status btn-cancel" onclick="updateStatus(${order.id}, 'CANCELLED')">
+                            ✕ Cancel
+                        </button>
+                    </div>
+                `;
+            } else if (order.status === 'CONFIRMED') {
+                actionButtons = `
+                    <div class="action-buttons">
+                        <button class="btn-status btn-deliver" onclick="updateStatus(${order.id}, 'DELIVERED')">
+                             Mark as Delivered
+                        </button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <div class="order-id">
+                                Order #${order.id}
+                                ${isNew ? '<span class="new-order-indicator"></span>' : ''}
+                            </div>
+                            <div class="customer-name">Customer: ${order.user.username}</div>
+                            <div class="order-date">${orderDate}</div>
+                        </div>
+                        <span class="order-status-badge ${statusClass}">${order.status}</span>
+                    </div>
+                    ${productsHTML}
+                    ${actionButtons}
+                </div>
+            `;
+        }
+
+        async function updateStatus(orderId, newStatus) {
+            const statusMessages = {
+                'CONFIRMED': 'Are you sure you want to confirm this order?',
+                'DELIVERED': 'Mark this order as delivered?',
+                'CANCELLED': 'Are you sure you want to cancel this order?'
+            };
+
+            const confirmed = await confirm(statusMessages[newStatus], {
+                title: 'Update Order Status',
+                confirmText: 'Yes, Update',
+                cancelText: 'No'
+            });
+
+            if (!confirmed) return;
+
+            const result = await apiUpdateOrderStatus(orderId, newStatus);
+            
+            if (result.success) {
+                notifySuccess(`Order status updated to ${newStatus}`);
+                loadVendorOrders(); // Reload orders
+            } else {
+                notifyError('Failed to update order status');
+            }
+        }
+
+        function logout() {
+            window.QuickKartAPI.apiLogout();
+            window.location.href = 'login.html';
+        }
+
+        // Load orders on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadVendorOrders();
+            
+            // Auto-refresh every 20 seconds to check for new orders
+            refreshInterval = setInterval(loadVendorOrders, 20000);
+        });
+
+        // Clear interval when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        });
+
+        // Play notification sound when new orders appear
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (err) {
+                console.log('Could not play sound:', err);
+            }
+        }
+    </script>
+</body>
+</html>
